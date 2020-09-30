@@ -1,0 +1,13 @@
+.active .CanvasWrapper .Canvas:hover {
+    border: 1px solid blue;
+}
+
+.CanvasWrapper {
+   float: left;
+   margin: 0px 5px 5px 5px;
+}
+
+.Canvas {
+    border: 1px solid;
+    box-sizing: border-box;
+}

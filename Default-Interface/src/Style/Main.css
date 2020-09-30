@@ -1,0 +1,6 @@
+.Main {
+    margin: 20px 0 0 20px;
+}
+.App.active .DrawButton {
+    color: blue;
+}
