@@ -5,17 +5,20 @@ import {PointersType} from '../../Interfaces/CanvasInterface';
 export const addPoint = (data: Point, pointType: PointersType) => ({
   type: CanvasActionsTypes.ADD_POINT,
   body: {
-    pointType, data
-  }
-})
+    pointType,
+    data,
+  },
+});
 
 export const setPoint = (data: Point, pointType: PointersType, ind: number) => ({
   type: CanvasActionsTypes.SET_POINT,
   body: {
-    pointType, data, ind
-  }
-})
+    pointType,
+    data,
+    ind,
+  },
+});
 
 export const clearPoints = () => ({
   type: CanvasActionsTypes.CLEAR_CANVAS,
-})
+});

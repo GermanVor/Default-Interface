@@ -1,95 +1,87 @@
-import React, { Component } from 'react'
-import {connect, ConnectedProps} from 'react-redux'
-import {RootState} from '../Storage'
-import {setPoint} from '../Storage/Actions/CanvasActions'
-import {PointersType, Point} from '../Interfaces/CanvasInterface'
-import '../Style/PointComponent.css'
+import React, {Component} from 'react';
+import {connect, ConnectedProps} from 'react-redux';
+import {RootState} from '../Storage';
+import {setPoint} from '../Storage/Actions/CanvasActions';
+import {PointersType, Point} from '../Interfaces/CanvasInterface';
+import '../Style/PointComponent.css';
 
 const mapState = (state: RootState, ownProps: ownProps) => {
-    return {
-    }
-}
+  return {};
+};
 
 const mapDispatch = {
-    setPoint
-}
+  setPoint,
+};
 
-const connector = connect(mapState, mapDispatch)
-type PropsFromRedux = ConnectedProps<typeof connector>
+const connector = connect(mapState, mapDispatch);
+type PropsFromRedux = ConnectedProps<typeof connector>;
 
-type State = {
-}
+type State = {};
 
 type ownProps = {
-    coordinates: {
-        first: number,
-        second: number
-    },
-    ind: number,
-    axesType: PointersType,
-    coordinatesToMove: Point
-}
+  coordinates: Point;
+  ind: number;
+  axesType: PointersType;
+  coordinatesToMove: Point;
+};
 
-type Props = PropsFromRedux & ownProps
+type Props = PropsFromRedux & ownProps;
 
 class PointClass extends Component<Props, State> {
-    private pointRef: React.RefObject<HTMLDivElement>;
-    // private X: number;
-    // private Y: number;
-    private isMoving: boolean = false;
+  private pointRef: React.RefObject<HTMLDivElement>;
+  // private X: number;
+  // private Y: number;
+  private isMoving = false;
 
-    constructor(props: Props) {
-        super(props);
-        this.state = {}
-        this.pointRef = React.createRef();
+  constructor(props: Props) {
+    super(props);
+    this.state = {};
+    this.pointRef = React.createRef();
+  }
+
+  mouseUpOfPoint = () => {
+    this.isMoving = false;
+  };
+
+  mouseDownOfPoint = () => {
+    const elem = this.pointRef!.current;
+
+    this.isMoving = true;
+    elem!.addEventListener('mouseup', this.mouseUpOfPoint);
+  };
+
+  componentDidUpdate(prevProps: Props) {
+    const {coordinatesToMove, setPoint, axesType, ind, coordinates} = this.props;
+    const {first, second} = this.props.coordinates;
+    const elem = this.pointRef!.current;
+
+    if (this.isMoving && prevProps.coordinatesToMove !== coordinatesToMove) {
+      setPoint(coordinatesToMove, axesType, ind);
+    } else if (prevProps.coordinates !== coordinates) {
+      elem!.style.left = `${first}px`;
+      elem!.style.top = `${second - elem!.clientHeight / 2}px`;
     }
 
-    mouseUpOfPoint = () => {
-        this.isMoving = false; 
-    }
+    return false;
+  }
 
-    mouseDownOfPoint = () => {
-        const elem = this.pointRef!.current;
-        
-        this.isMoving = true;
-        elem!.addEventListener('mouseup', this.mouseUpOfPoint);
-    }
+  componentDidMount() {
+    const {first, second} = this.props.coordinates;
+    const elem = this.pointRef!.current;
 
-    componentDidUpdate(prevProps: Props) {
-        const {coordinatesToMove, setPoint, axesType, ind, coordinates} = this.props;
-        const {first, second} = this.props.coordinates;
-        const elem = this.pointRef!.current;
+    elem!.ondragstart = () => false;
 
-        if (this.isMoving && prevProps.coordinatesToMove !== coordinatesToMove) {
-            setPoint(coordinatesToMove , axesType, ind);
-        }
+    elem!.style.left = `${first}px`;
+    elem!.style.top = `${second - elem!.clientHeight / 2}px`;
 
-        if (prevProps.coordinates !== coordinates) {
-            elem!.style.left = `${first}px`;
-            elem!.style.top = `${second-elem!.clientHeight/2}px`;
-        }
-    }
+    elem!.addEventListener('mousedown', this.mouseDownOfPoint);
+  }
 
-    componentDidMount() {
-        const {first, second} = this.props.coordinates;
-        const elem = this.pointRef!.current;
-        
-        elem!.ondragstart = () => (false);
-        
-        elem!.style.left = `${first}px`;
-        elem!.style.top = `${second-elem!.clientHeight/2}px`;
+  render() {
+    const {ind} = this.props;
 
-        elem!.addEventListener('mousedown', this.mouseDownOfPoint);
-    }
-
-    render() {
-        const {ind} = this.props;
-
-        return (<div 
-            className="PointComponent" 
-            ref={this.pointRef}>
-        </div>)
-    }
+    return <div className="PointComponent" ref={this.pointRef}></div>;
+  }
 }
 
 export const PointComponent = connector(PointClass);

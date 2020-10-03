@@ -1,11 +1,8 @@
 .PointComponent {
     position: absolute;
     border-radius: 50%;
-    border: 1px solid;
+    /* border: 1px solid; */
     width: 10px;
     height: 10px;
-}
-
-.mousedownOfPoint {
-    z-index: 1000;
+    z-index: 11;
 }
