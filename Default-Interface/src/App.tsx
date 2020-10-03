@@ -58,37 +58,40 @@ class App extends React.Component<Props, State> {
 
     return <div className={'App ' + (isRecording ? 'active' : '')}>
       <div>
-        <Canvas 
+        <Canvas
+          key={"XY_CANVAS"} 
           axes={{
             verticalAxisName: "y",
             horizontalAxisName: "x",
             axesType: PointersTypes.XY_axis
           }}
         />
-        <Canvas 
+        <Canvas
+          key={"ZX_CANVAS"}
           axes={{
             verticalAxisName: "x",
             horizontalAxisName: "z",
             axesType: PointersTypes.ZX_axis
           }}
         />
-        <Canvas 
+        <Canvas
+          key={"YZ_CANVAS"}
           axes={{
             verticalAxisName: "z",
             horizontalAxisName: "y",
             axesType: PointersTypes.YZ_axis
           }}
         />
-        <D3_Canvas 
-          axes={{
-            firstAxisName: "y",
-            secondAxisName: "x",
-            thirdAxisName: "z"
-          }}
-        />
       </div>
       <button onClick={this.Draw} className={'DrawButton'}>{'Draw'}</button>
       <button onClick={this.Refresh}>{'Refresh'}</button>
+      <D3_Canvas 
+        axes={{
+          firstAxisName: "y",
+          secondAxisName: "x",
+          thirdAxisName: "z"
+        }}
+      />
     </div>
   }
 }

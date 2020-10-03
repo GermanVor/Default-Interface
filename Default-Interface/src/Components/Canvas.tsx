@@ -5,6 +5,7 @@ import {RootState} from '../Storage'
 import {addPoint} from '../Storage/Actions/CanvasActions'
 import {PointersType, PointersTypes} from '../Interfaces/CanvasInterface'
 import {getPointArray} from '../Storage/CanvasReducer'
+import {PointComponent} from './PointComponent'
 import '../Style/Canvas.css';
 
 const HEIGHT: number = 220;
@@ -12,7 +13,6 @@ const WIDTH: number = 220;
 const offset: number = 5;
 
 const mapState = (state: RootState, ownProps: ownProps) => {
-
     return {
         isRecording: state.ServiceReducer.isRecording,
         pointsArray: getPointArray(state.CanvasReducer, ownProps.axes.axesType)
@@ -112,9 +112,7 @@ class CanvasClass extends Component<Props, State> {
         const context = this.canvasRef!.current!.getContext("2d");
         const {verticalAxisName, horizontalAxisName} = this.props.axes;     
 
-        if(!context) return;
-
-        DrawAxes(context, verticalAxisName, horizontalAxisName);
+        DrawAxes(context!, verticalAxisName, horizontalAxisName);
     }
 
     onMouseMove = (ev: MouseEvent) => {
@@ -130,9 +128,11 @@ class CanvasClass extends Component<Props, State> {
     }
 
     addPoint = () => {
-        const {first, second} = this.state.coordinates;
         const {axesType} = this.props.axes;
+        const {coordinates} = this.state;
 
+        const {first, second} = coordinates;
+        
         this.props.addPoint({first, second}, axesType);
     }
 
@@ -147,31 +147,26 @@ class CanvasClass extends Component<Props, State> {
 
         if (prevProps.isRecording !==isRecording) {
             if (isRecording) {
-                this.canvasRef.current!.onmousemove = this.onMouseMove;
-                this.canvasRef.current!.onmousedown = this.addPoint;
+                this.canvasRef.current!.addEventListener("mousemove", this.onMouseMove);
+                this.canvasRef.current!.addEventListener("mousedown", this.addPoint);
             } else {
                 this.setState({coordinates: { first: 0, second: 0}});
-                this.canvasRef.current!.onmousemove = null;
-                this.canvasRef.current!.onmousedown = null;
+                this.canvasRef.current!.removeEventListener("mousedown", this.addPoint);
             }
         }
 
         if (prevProps.pointsArray !== pointsArray) {
-            if(pointsArray.length) {
-                pointsArray.forEach((point) => drawPoint(context!, point));
-            } else {
-                const {verticalAxisName, horizontalAxisName} = axes;
-                context!.clearRect(0, 0, WIDTH, HEIGHT);
-                DrawAxes(context!, verticalAxisName, horizontalAxisName);
-            }
-            
-        }
+            const {verticalAxisName, horizontalAxisName} = axes;
+            context!.clearRect(0, 0, WIDTH, HEIGHT);
+            DrawAxes(context!, verticalAxisName, horizontalAxisName);
 
+            pointsArray.forEach((point) => drawPoint(context!, point));
+        }
     }
 
     render() {
         const {coordinates} = this.state;
-        const {axes} = this.props;
+        const {axes, pointsArray} = this.props;
 
         return <div className={"CanvasWrapper"}>
             <canvas
@@ -180,6 +175,20 @@ class CanvasClass extends Component<Props, State> {
                 ref={this.canvasRef} 
             />
             <br />
+            {pointsArray.map((point, ind) => {
+                const {first, second} = point;
+
+                return (<PointComponent
+                    key={`PointComponent-${ind}`} 
+                    coordinates={{
+                        first,
+                        second: HEIGHT-second-offset
+                    }}
+                    ind={ind}
+                    axesType={axes.axesType}
+                    coordinatesToMove={coordinates}
+                />)
+            })}
             {`${axes.horizontalAxisName}: ${coordinates.first} | ${axes.verticalAxisName}: ${coordinates.second}`}
         </div>;
     }

@@ -16,6 +16,27 @@ const initialState: CanvasReducerStore = {
     pointsArray: []
 }
 
+const defaultD3Poit = {
+  x: 0,
+  y: 0,
+  z: 0
+}
+const D2_TO_D3 = (pointersType: PointersType, point: Point, template: D3_Point = defaultD3Poit) : D3_Point => {
+  const {first, second} = point;
+  
+  switch(pointersType) {
+    case PointersTypes.XY_axis: {
+      return {...template, ...{x: first, y: second}};
+    }
+    case PointersTypes.YZ_axis: {
+      return {...template, ...{y: first, z: second}};
+    }
+    case PointersTypes.ZX_axis: {
+      return {...template, ...{z: first, x: second}};
+    }
+  }
+}
+
 const D3_to_D2 = (pointersType: PointersType, point: D3_Point) : Point => {
   const {x, y, z} = point;
   switch(pointersType) {
@@ -34,35 +55,29 @@ export function CanvasReducer(state: CanvasReducerStore = initialState, action: 
   switch (action.type) {
     case CanvasActionsTypes.ADD_POINT: {
       const {data, pointType} = action.body;
-      switch (pointType) {
-        case PointersTypes.XY_axis: {
-          const point: D3_Point = {
-            x: data.first,
-            y: data.second,
-            z: 0
-          }
-          return {...state, pointsArray: [...state.pointsArray, point]}
-        }
-        case PointersTypes.YZ_axis: {
-          const point: D3_Point = {
-            x: 0,
-            y: data.first,
-            z: data.second
-          }
-          return {...state, pointsArray: [...state.pointsArray, point]}
-        }
-        case PointersTypes.ZX_axis: {
-          const point: D3_Point = {
-            x: data.second,
-            y: 0,
-            z: data.first
-          }
-          return {...state, pointsArray: [...state.pointsArray, point]}
-        }
-      };
+      const newPoint = D2_TO_D3(pointType, data);
+
+      return {...state, pointsArray: [...state.pointsArray, newPoint]}
     };
     case CanvasActionsTypes.CLEAR_CANVAS: {
       return {...initialState}
+    }
+    case CanvasActionsTypes.SET_POINT: {
+      //сложный момент, нужно думать как лучше хранить точки
+      //у хранения точек в массиве есть существенный недостаток - удалять точки очень запарно.
+      //если просто сдвигать массив, то сдвинутся и индексы вершин, и тогда связи между ними будут потеряны.
+      //решение - хранить в map с ключем индексом
+      
+      const {data, ind, pointType} = action.body;
+      const {pointsArray} = state;
+      
+      if (pointsArray[ind] === undefined) {
+        throw new Error("pointsArray[ind] === undefined");
+      }
+
+      pointsArray[ind] = D2_TO_D3(pointType, data, pointsArray[ind]);
+      
+      return {...state, pointsArray: [...pointsArray]}
     }
     default: {
       return state;
