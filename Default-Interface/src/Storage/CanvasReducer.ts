@@ -10,10 +10,14 @@ type CanvasReducerActions = ReturnType<InferValueTypes<typeof actions>>;
 
 export interface CanvasReducerStore {
   pointsArray: Array<D3_Point>;
+  connectionsArray: Array<number>;
+  potentialToConnectPoint: number | undefined;
 }
 
 const initialState: CanvasReducerStore = {
   pointsArray: [],
+  connectionsArray: [],
+  potentialToConnectPoint: undefined,
 };
 
 const defaultD3Poit = {
@@ -21,6 +25,22 @@ const defaultD3Poit = {
   y: 0,
   z: 0,
 };
+
+const getGeneralIndex = (x: number, y: number): number => {
+  if (x === y) throw new Error('getGeneralIndex: x===y');
+
+  if (x < y) {
+    const buf = x;
+    x = y;
+    y = buf;
+  }
+
+  y++;
+  x++;
+
+  return y + (x * (x - 1)) / 2 - x;
+};
+
 const D2_TO_D3 = (pointersType: PointersType, point: Point, template: D3_Point = defaultD3Poit): D3_Point => {
   point.first = Math.floor(point.first);
   point.second = Math.floor(point.second);
@@ -85,6 +105,24 @@ export function CanvasReducer(
 
       return {...state, pointsArray: [...pointsArray]};
     }
+    case CanvasActionsTypes.SET_CONNECTION: {
+      const {secondTop} = action.body;
+      const {connectionsArray, potentialToConnectPoint} = state;
+
+      if (potentialToConnectPoint === undefined) {
+        throw new Error('case CanvasActionsTypes.SET_CONNECTION: potentialToConnectPoint == undefined');
+      }
+
+      connectionsArray[getGeneralIndex(potentialToConnectPoint!, secondTop)] = 1;
+      return {...state, connectionsArray: [...connectionsArray]};
+    }
+    case CanvasActionsTypes.SET_POTENTIAL_POINT: {
+      if (action.body.ind === state.potentialToConnectPoint) {
+        return {...state, potentialToConnectPoint: undefined};
+      } else {
+        return {...state, potentialToConnectPoint: action.body.ind};
+      }
+    }
     default: {
       return state;
     }
@@ -93,4 +131,8 @@ export function CanvasReducer(
 
 export function getPointArray(state: CanvasReducerStore, pointersType: PointersType): Array<Point> {
   return state.pointsArray.map((point) => D3_to_D2(pointersType, point));
+}
+
+export function isConnection(state: CanvasReducerStore, indA: number, indB: number): boolean {
+  return Boolean(state.connectionsArray[getGeneralIndex(indA, indB)]);
 }

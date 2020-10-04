@@ -2,9 +2,9 @@ import React, {Component} from 'react';
 import {connect, ConnectedProps} from 'react-redux';
 import {Point} from '../Interfaces/CanvasInterface';
 import {RootState} from '../Storage';
-import {addPoint} from '../Storage/Actions/CanvasActions';
+import {addPoint, setConnection} from '../Storage/Actions/CanvasActions';
 import {PointersType, PointersTypes} from '../Interfaces/CanvasInterface';
-import {getPointArray} from '../Storage/CanvasReducer';
+import {getPointArray, isConnection} from '../Storage/CanvasReducer';
 import {PointComponent} from './PointComponent';
 import '../Style/Canvas.css';
 
@@ -16,11 +16,13 @@ const mapState = (state: RootState, ownProps: ownProps) => {
   return {
     isRecording: state.ServiceReducer.isRecording,
     pointsArray: getPointArray(state.CanvasReducer, ownProps.axes.axesType),
+    isConnection: isConnection.bind(null, state.CanvasReducer),
   };
 };
 
 const mapDispatch = {
   addPoint,
+  setConnection,
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -94,6 +96,15 @@ const drawPoint = (context: CanvasRenderingContext2D, {first, second}: Point) =>
   context!.fill();
 };
 
+const drawConnection = (context: CanvasRenderingContext2D, firstTop: Point, secondTop: Point) => {
+  context.setLineDash([4, 16]);
+
+  context!.beginPath();
+  context!.moveTo(Math.floor(firstTop.first + offset), Math.floor(HEIGHT - firstTop.second - offset));
+  context!.lineTo(Math.floor(secondTop.first + offset), Math.floor(HEIGHT - secondTop.second - offset));
+  context!.stroke();
+};
+
 class CanvasClass extends Component<Props, State> {
   private canvasRef: React.RefObject<HTMLCanvasElement>;
   private backgroundCanRef: React.RefObject<HTMLCanvasElement>;
@@ -130,17 +141,19 @@ class CanvasClass extends Component<Props, State> {
     }
   };
 
-  addPoint = () => {
-    const {axesType} = this.props.axes;
-    const {coordinates} = this.state;
+  addPoint = (ev: MouseEvent) => {
+    if (ev.button === 0) {
+      const {axesType} = this.props.axes;
+      const {coordinates} = this.state;
 
-    const {first, second} = coordinates;
+      const {first, second} = coordinates;
 
-    this.props.addPoint({first, second}, axesType);
+      this.props.addPoint({first, second}, axesType);
+    }
   };
 
   componentDidUpdate = (prevProps: Props, prevState: State) => {
-    const {isRecording, pointsArray} = this.props;
+    const {isRecording, pointsArray, isConnection} = this.props;
 
     const context = this.canvasRef.current!.getContext('2d', {alpha: false});
 
@@ -157,7 +170,15 @@ class CanvasClass extends Component<Props, State> {
     if (prevProps.pointsArray !== pointsArray) {
       context!.clearRect(0, 0, WIDTH, HEIGHT);
 
-      pointsArray.forEach((point) => drawPoint(context!, point));
+      pointsArray.forEach(drawPoint.bind(null, context!));
+
+      pointsArray.forEach((pointA, i) => {
+        pointsArray.forEach((pointB, j) => {
+          if (i !== j && isConnection(i, j)) {
+            drawConnection(context!, pointA, pointB);
+          }
+        });
+      });
     }
   };
 

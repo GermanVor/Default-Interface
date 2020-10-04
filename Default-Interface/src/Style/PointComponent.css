@@ -1,8 +1,15 @@
 .PointComponent {
     position: absolute;
     border-radius: 50%;
-    /* border: 1px solid; */
     width: 10px;
     height: 10px;
-    z-index: 11;
+    z-index: 100;
+}
+
+.isConnection:hover {
+    transform: scale(1.3);
+}
+
+.isConnection {
+    border: 1px solid;
 }

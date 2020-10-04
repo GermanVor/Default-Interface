@@ -19,6 +19,20 @@ export const setPoint = (data: Point, pointType: PointersType, ind: number) => (
   },
 });
 
+export const setConnection = (secondTop: number) => ({
+  type: CanvasActionsTypes.SET_CONNECTION,
+  body: {
+    secondTop,
+  },
+});
+
 export const clearPoints = () => ({
   type: CanvasActionsTypes.CLEAR_CANVAS,
+});
+
+export const setPotentialToConnectPoint = (ind: number) => ({
+  type: CanvasActionsTypes.SET_POTENTIAL_POINT,
+  body: {
+    ind,
+  },
 });

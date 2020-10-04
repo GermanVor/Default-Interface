@@ -3,8 +3,8 @@ import {connect, ConnectedProps} from 'react-redux';
 import {D3_Point} from '../Interfaces/CanvasInterface';
 import {RootState} from '../Storage';
 import {addPoint} from '../Storage/Actions/CanvasActions';
-import {PointersType, PointersTypes} from '../Interfaces/CanvasInterface';
-import {getPointArray} from '../Storage/CanvasReducer';
+import {Point} from '../Interfaces/CanvasInterface';
+import {isConnection} from '../Storage/CanvasReducer';
 import '../Style/Canvas.css';
 
 const HEIGHT = 440;
@@ -18,6 +18,7 @@ const mapState = (state: RootState, ownProps: ownProps) => {
   return {
     isRecording: state.ServiceReducer.isRecording,
     pointsArray: state.CanvasReducer.pointsArray,
+    isConnection: isConnection.bind(null, state.CanvasReducer),
   };
 };
 
@@ -74,28 +75,48 @@ const DrawAxes = (
   context.stroke();
 };
 
-const drawPoint = (context: CanvasRenderingContext2D, D3_point: D3_Point) => {
+const converter = (D3_point: D3_Point): Point => {
   const {x, y, z} = D3_point;
+  const result: Point = {
+    first: 0,
+    second: 0,
+  };
+
   let alf = (-(YX_ANGLE - 90) * Math.PI) / 180;
 
   const x_0 = WIDTH / 2,
     y_0 = HEIGHT / 2;
 
   // экранировали на ось x
-  const pointHelper = [
-    (x + x_0 - x_0) * Math.cos(alf) - (0 + y_0 - y_0) * Math.sin(alf) + x_0,
-    (x + x_0 - x_0) * Math.sin(alf) + (0 + y_0 - y_0) * Math.cos(alf) + y_0,
-  ];
+  result.first = (x + x_0 - x_0) * Math.cos(alf) - (0 + y_0 - y_0) * Math.sin(alf) + x_0;
+  result.second = (x + x_0 - x_0) * Math.sin(alf) + (0 + y_0 - y_0) * Math.cos(alf) + y_0;
 
   alf = ((180 - YZ_ANGLE) * Math.PI) / 180;
   // сдвинули относительно z
-  pointHelper[0] = pointHelper[0] - Math.sin(alf) * z;
-  pointHelper[1] = pointHelper[1] - Math.cos(alf) * z;
+  result.first = result.first - Math.sin(alf) * z;
+  result.second = result.second - Math.cos(alf) * z + y;
+
+  return result;
+};
+
+const drawPoint = (context: CanvasRenderingContext2D, D3_point: D3_Point) => {
+  const {first, second} = converter(D3_point);
 
   context.beginPath();
-  context.arc(Math.floor(pointHelper[0]), Math.floor(HEIGHT - pointHelper[1] - y), 2, 0, Math.PI * 2, true);
+  context.arc(Math.floor(first), Math.floor(HEIGHT - second), 2, 0, Math.PI * 2, true);
   context.closePath();
   context.fill();
+};
+
+const drawConnection = (context: CanvasRenderingContext2D, a: D3_Point, b: D3_Point) => {
+  const firstTop = converter(a);
+  const secondTop = converter(b);
+
+  context.setLineDash([4, 16]);
+  context.beginPath();
+  context.moveTo(Math.floor(firstTop.first), Math.floor(HEIGHT - firstTop.second));
+  context.lineTo(Math.floor(secondTop.first), Math.floor(HEIGHT - secondTop.second));
+  context.stroke();
 };
 
 class CanvasClass extends Component<Props, State> {
@@ -118,12 +139,20 @@ class CanvasClass extends Component<Props, State> {
 
   componentDidUpdate = (prevProps: Props, prevState: State) => {
     const context = this.canvasRef.current!.getContext('2d');
-    const {pointsArray} = this.props;
+    const {pointsArray, isConnection} = this.props;
 
     if (prevProps.pointsArray !== pointsArray) {
       context!.clearRect(0, 0, WIDTH, HEIGHT);
 
       this.props.pointsArray.forEach(drawPoint.bind(null, context!));
+
+      pointsArray.forEach((pointA, i) => {
+        pointsArray.forEach((pointB, j) => {
+          if (i !== j && isConnection(i, j)) {
+            drawConnection(context!, pointA, pointB);
+          }
+        });
+      });
     }
   };
 

@@ -1,16 +1,24 @@
 import React, {Component} from 'react';
 import {connect, ConnectedProps} from 'react-redux';
 import {RootState} from '../Storage';
-import {setPoint} from '../Storage/Actions/CanvasActions';
+import {setPoint, setPotentialToConnectPoint, setConnection} from '../Storage/Actions/CanvasActions';
 import {PointersType, Point} from '../Interfaces/CanvasInterface';
+import {setFlagConnection} from '../Storage/Actions/ServiceActions';
 import '../Style/PointComponent.css';
+import {isUndefined} from 'util';
 
 const mapState = (state: RootState, ownProps: ownProps) => {
-  return {};
+  return {
+    isConnection: state.ServiceReducer.isConnection,
+    potentialToConnectPoint: state.CanvasReducer.potentialToConnectPoint,
+  };
 };
 
 const mapDispatch = {
+  setPotentialToConnectPoint,
+  setConnection,
   setPoint,
+  setFlagConnection,
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -29,8 +37,6 @@ type Props = PropsFromRedux & ownProps;
 
 class PointClass extends Component<Props, State> {
   private pointRef: React.RefObject<HTMLDivElement>;
-  // private X: number;
-  // private Y: number;
   private isMoving = false;
 
   constructor(props: Props) {
@@ -39,19 +45,43 @@ class PointClass extends Component<Props, State> {
     this.pointRef = React.createRef();
   }
 
-  mouseUpOfPoint = () => {
+  mouseUpToEndMove = () => {
+    const elem = this.pointRef!.current;
     this.isMoving = false;
+    elem!.removeEventListener('mouseup', this.mouseUpToEndMove);
   };
 
-  mouseDownOfPoint = () => {
-    const elem = this.pointRef!.current;
+  mouseDownToMove = (ev: MouseEvent) => {
+    if (ev.button === 0) {
+      const elem = this.pointRef!.current;
 
-    this.isMoving = true;
-    elem!.addEventListener('mouseup', this.mouseUpOfPoint);
+      this.isMoving = true;
+      elem!.addEventListener('mouseup', this.mouseUpToEndMove);
+    }
+  };
+
+  mouseDownToStartConnection = (ev: MouseEvent) => {
+    if (ev.button === 2) {
+      const {setFlagConnection, setPotentialToConnectPoint, ind} = this.props;
+      // setFlagConnection();
+      setPotentialToConnectPoint(ind);
+
+      ev.preventDefault();
+    }
+  };
+
+  mouseDownToEndConnection = (ev: MouseEvent) => {
+    if (ev.button === 0) {
+      const elem = this.pointRef!.current;
+      const {setConnection, ind} = this.props;
+      setConnection(ind);
+      elem!.removeEventListener('mousedown', this.mouseDownToEndConnection);
+    }
   };
 
   componentDidUpdate(prevProps: Props) {
-    const {coordinatesToMove, setPoint, axesType, ind, coordinates} = this.props;
+    const {potentialToConnectPoint, coordinatesToMove, isConnection, coordinates, setPoint, axesType, ind} = this.props;
+
     const {first, second} = this.props.coordinates;
     const elem = this.pointRef!.current;
 
@@ -60,6 +90,11 @@ class PointClass extends Component<Props, State> {
     } else if (prevProps.coordinates !== coordinates) {
       elem!.style.left = `${first}px`;
       elem!.style.top = `${second - elem!.clientHeight / 2}px`;
+    }
+
+    //событие завершения добавления связи
+    if (potentialToConnectPoint !== undefined && ind !== potentialToConnectPoint) {
+      elem!.addEventListener('mousedown', this.mouseDownToEndConnection);
     }
 
     return false;
@@ -74,13 +109,23 @@ class PointClass extends Component<Props, State> {
     elem!.style.left = `${first}px`;
     elem!.style.top = `${second - elem!.clientHeight / 2}px`;
 
-    elem!.addEventListener('mousedown', this.mouseDownOfPoint);
+    // событие начала перемещения
+    elem!.addEventListener('mousedown', this.mouseDownToMove);
+    // событие начала добавления связи
+    elem!.addEventListener('contextmenu', this.mouseDownToStartConnection);
   }
 
   render() {
-    const {ind} = this.props;
+    const {isConnection, potentialToConnectPoint, ind} = this.props;
 
-    return <div className="PointComponent" ref={this.pointRef}></div>;
+    return (
+      <div
+        className={
+          'PointComponent ' +
+          (potentialToConnectPoint !== undefined && potentialToConnectPoint !== ind ? 'isConnection' : '')
+        }
+        ref={this.pointRef}></div>
+    );
   }
 }
 
