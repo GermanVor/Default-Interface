@@ -4,6 +4,7 @@ export const CanvasActionsTypes = <const>{
   SET_POINT: 'SET_POINT',
   SET_CONNECTION: 'SET_CONNECTION',
   SET_POTENTIAL_POINT: 'SET_POTENTIAL_POINT',
+  DROP_POTENTIAL_POINT: 'DROP_POTENTIAL_POINT',
 };
 
 export const ServiceActionsTypes = <const>{

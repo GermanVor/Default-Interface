@@ -36,3 +36,7 @@ export const setPotentialToConnectPoint = (ind: number) => ({
     ind,
   },
 });
+
+export const dropPotentialToConnectPoint = () => ({
+  type: CanvasActionsTypes.DROP_POTENTIAL_POINT,
+});

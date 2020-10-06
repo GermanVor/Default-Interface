@@ -113,8 +113,12 @@ export function CanvasReducer(
         throw new Error('case CanvasActionsTypes.SET_CONNECTION: potentialToConnectPoint == undefined');
       }
 
-      connectionsArray[getGeneralIndex(potentialToConnectPoint!, secondTop)] = 1;
-      return {...state, connectionsArray: [...connectionsArray]};
+      if (potentialToConnectPoint !== secondTop) {
+        connectionsArray[getGeneralIndex(potentialToConnectPoint!, secondTop)] = 1;
+        return {...state, connectionsArray: [...connectionsArray]};
+      } else {
+        return state;
+      }
     }
     case CanvasActionsTypes.SET_POTENTIAL_POINT: {
       if (action.body.ind === state.potentialToConnectPoint) {
@@ -122,6 +126,9 @@ export function CanvasReducer(
       } else {
         return {...state, potentialToConnectPoint: action.body.ind};
       }
+    }
+    case CanvasActionsTypes.DROP_POTENTIAL_POINT: {
+      return {...state, potentialToConnectPoint: undefined};
     }
     default: {
       return state;
@@ -134,5 +141,9 @@ export function getPointArray(state: CanvasReducerStore, pointersType: PointersT
 }
 
 export function isConnection(state: CanvasReducerStore, indA: number, indB: number): boolean {
-  return Boolean(state.connectionsArray[getGeneralIndex(indA, indB)]);
+  if (indA === indB) {
+    return false;
+  } else {
+    return Boolean(state.connectionsArray[getGeneralIndex(indA, indB)]);
+  }
 }

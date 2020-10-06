@@ -1,20 +1,24 @@
 import React, {Component} from 'react';
 import {connect, ConnectedProps} from 'react-redux';
 import {RootState} from '../Storage';
-import {setPoint, setPotentialToConnectPoint, setConnection} from '../Storage/Actions/CanvasActions';
+import {
+  setPoint,
+  setPotentialToConnectPoint,
+  setConnection,
+  dropPotentialToConnectPoint,
+} from '../Storage/Actions/CanvasActions';
 import {PointersType, Point} from '../Interfaces/CanvasInterface';
 import {setFlagConnection} from '../Storage/Actions/ServiceActions';
 import '../Style/PointComponent.css';
-import {isUndefined} from 'util';
 
 const mapState = (state: RootState, ownProps: ownProps) => {
   return {
-    isConnection: state.ServiceReducer.isConnection,
     potentialToConnectPoint: state.CanvasReducer.potentialToConnectPoint,
   };
 };
 
 const mapDispatch = {
+  dropPotentialToConnectPoint,
   setPotentialToConnectPoint,
   setConnection,
   setPoint,
@@ -45,10 +49,8 @@ class PointClass extends Component<Props, State> {
     this.pointRef = React.createRef();
   }
 
-  mouseUpToEndMove = () => {
-    const elem = this.pointRef!.current;
+  mouseUpToEndMove = (ev: MouseEvent) => {
     this.isMoving = false;
-    elem!.removeEventListener('mouseup', this.mouseUpToEndMove);
   };
 
   mouseDownToMove = (ev: MouseEvent) => {
@@ -62,25 +64,28 @@ class PointClass extends Component<Props, State> {
 
   mouseDownToStartConnection = (ev: MouseEvent) => {
     if (ev.button === 2) {
-      const {setFlagConnection, setPotentialToConnectPoint, ind} = this.props;
-      // setFlagConnection();
-      setPotentialToConnectPoint(ind);
+      const {dropPotentialToConnectPoint, setPotentialToConnectPoint, potentialToConnectPoint, ind} = this.props;
+
+      if (ind !== potentialToConnectPoint) {
+        setPotentialToConnectPoint(ind);
+      } else {
+        dropPotentialToConnectPoint();
+      }
 
       ev.preventDefault();
     }
   };
 
+  //событие завершение добавления связи
   mouseDownToEndConnection = (ev: MouseEvent) => {
     if (ev.button === 0) {
-      const elem = this.pointRef!.current;
       const {setConnection, ind} = this.props;
       setConnection(ind);
-      elem!.removeEventListener('mousedown', this.mouseDownToEndConnection);
     }
   };
 
   componentDidUpdate(prevProps: Props) {
-    const {potentialToConnectPoint, coordinatesToMove, isConnection, coordinates, setPoint, axesType, ind} = this.props;
+    const {potentialToConnectPoint, coordinatesToMove, coordinates, setPoint, axesType, ind} = this.props;
 
     const {first, second} = this.props.coordinates;
     const elem = this.pointRef!.current;
@@ -92,9 +97,11 @@ class PointClass extends Component<Props, State> {
       elem!.style.top = `${second - elem!.clientHeight / 2}px`;
     }
 
-    //событие завершения добавления связи
+    //событие завершения добавления связи второй точки
     if (potentialToConnectPoint !== undefined && ind !== potentialToConnectPoint) {
       elem!.addEventListener('mousedown', this.mouseDownToEndConnection);
+    } else {
+      elem!.removeEventListener('mousedown', this.mouseDownToEndConnection);
     }
 
     return false;
@@ -111,12 +118,13 @@ class PointClass extends Component<Props, State> {
 
     // событие начала перемещения
     elem!.addEventListener('mousedown', this.mouseDownToMove);
+
     // событие начала добавления связи
     elem!.addEventListener('contextmenu', this.mouseDownToStartConnection);
   }
 
   render() {
-    const {isConnection, potentialToConnectPoint, ind} = this.props;
+    const {potentialToConnectPoint, ind} = this.props;
 
     return (
       <div

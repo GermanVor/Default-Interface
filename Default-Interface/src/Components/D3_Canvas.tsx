@@ -14,7 +14,7 @@ const OFFSET = 10;
 const YX_ANGLE = 120;
 const YZ_ANGLE = 120;
 
-const mapState = (state: RootState, ownProps: ownProps) => {
+const mapState = (state: RootState) => {
   return {
     isRecording: state.ServiceReducer.isRecording,
     pointsArray: state.CanvasReducer.pointsArray,
@@ -139,21 +139,20 @@ class CanvasClass extends Component<Props, State> {
 
   componentDidUpdate = (prevProps: Props, prevState: State) => {
     const context = this.canvasRef.current!.getContext('2d');
-    const {pointsArray, isConnection} = this.props;
+    const {isConnection, pointsArray} = this.props;
 
-    if (prevProps.pointsArray !== pointsArray) {
-      context!.clearRect(0, 0, WIDTH, HEIGHT);
+    context!.clearRect(0, 0, WIDTH, HEIGHT);
 
-      this.props.pointsArray.forEach(drawPoint.bind(null, context!));
-
-      pointsArray.forEach((pointA, i) => {
-        pointsArray.forEach((pointB, j) => {
-          if (i !== j && isConnection(i, j)) {
-            drawConnection(context!, pointA, pointB);
-          }
-        });
+    pointsArray.forEach((pointA, i) => {
+      pointsArray.forEach((pointB, j) => {
+        if (i !== j && isConnection(i, j)) {
+          drawConnection(context!, pointA, pointB);
+        }
       });
-    }
+      drawPoint(context!, pointA);
+    });
+
+    return false;
   };
 
   render() {
