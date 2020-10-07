@@ -10,6 +10,13 @@ export const addPoint = (data: Point, pointType: PointersType) => ({
   },
 });
 
+export const removePoint = (ind: number) => ({
+  type: CanvasActionsTypes.REMOVE_POINT,
+  body: {
+    ind,
+  },
+});
+
 export const setPoint = (data: Point, pointType: PointersType, ind: number) => ({
   type: CanvasActionsTypes.SET_POINT,
   body: {
@@ -19,8 +26,8 @@ export const setPoint = (data: Point, pointType: PointersType, ind: number) => (
   },
 });
 
-export const setConnection = (secondTop: number) => ({
-  type: CanvasActionsTypes.SET_CONNECTION,
+export const setDropConnection = (secondTop: number) => ({
+  type: CanvasActionsTypes.SET_DROP_CONNECTION,
   body: {
     secondTop,
   },

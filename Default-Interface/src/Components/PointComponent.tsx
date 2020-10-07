@@ -1,11 +1,12 @@
-import React, {Component} from 'react';
+import React, {Component, Dispatch} from 'react';
 import {connect, ConnectedProps} from 'react-redux';
 import {RootState} from '../Storage';
 import {
   setPoint,
   setPotentialToConnectPoint,
-  setConnection,
+  setDropConnection,
   dropPotentialToConnectPoint,
+  removePoint,
 } from '../Storage/Actions/CanvasActions';
 import {PointersType, Point} from '../Interfaces/CanvasInterface';
 import {setFlagConnection} from '../Storage/Actions/ServiceActions';
@@ -20,7 +21,8 @@ const mapState = (state: RootState, ownProps: ownProps) => {
 const mapDispatch = {
   dropPotentialToConnectPoint,
   setPotentialToConnectPoint,
-  setConnection,
+  setDropConnection,
+  removePoint,
   setPoint,
   setFlagConnection,
 };
@@ -28,7 +30,9 @@ const mapDispatch = {
 const connector = connect(mapState, mapDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
-type State = {};
+type State = {
+  isOpenMenu: boolean;
+};
 
 type ownProps = {
   coordinates: Point;
@@ -45,7 +49,9 @@ class PointClass extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props);
-    this.state = {};
+    this.state = {
+      isOpenMenu: false,
+    };
     this.pointRef = React.createRef();
   }
 
@@ -64,14 +70,7 @@ class PointClass extends Component<Props, State> {
 
   mouseDownToStartConnection = (ev: MouseEvent) => {
     if (ev.button === 2) {
-      const {dropPotentialToConnectPoint, setPotentialToConnectPoint, potentialToConnectPoint, ind} = this.props;
-
-      if (ind !== potentialToConnectPoint) {
-        setPotentialToConnectPoint(ind);
-      } else {
-        dropPotentialToConnectPoint();
-      }
-
+      this.setState({isOpenMenu: !this.state.isOpenMenu});
       ev.preventDefault();
     }
   };
@@ -79,8 +78,8 @@ class PointClass extends Component<Props, State> {
   //событие завершение добавления связи
   mouseDownToEndConnection = (ev: MouseEvent) => {
     if (ev.button === 0) {
-      const {setConnection, ind} = this.props;
-      setConnection(ind);
+      const {setDropConnection, ind} = this.props;
+      setDropConnection(ind);
     }
   };
 
@@ -119,12 +118,33 @@ class PointClass extends Component<Props, State> {
     // событие начала перемещения
     elem!.addEventListener('mousedown', this.mouseDownToMove);
 
-    // событие начала добавления связи
+    // событие открытия меню
     elem!.addEventListener('contextmenu', this.mouseDownToStartConnection);
   }
 
+  setPotentialTopToConnect = (ev: React.MouseEvent<HTMLButtonElement>) => {
+    const {dropPotentialToConnectPoint, setPotentialToConnectPoint, potentialToConnectPoint, ind} = this.props;
+
+    if (ind !== potentialToConnectPoint) {
+      setPotentialToConnectPoint(ind);
+    } else {
+      dropPotentialToConnectPoint();
+    }
+  };
+
+  deletePoint = (ev: React.MouseEvent<HTMLButtonElement>) => {
+    const {ind, removePoint} = this.props;
+    removePoint(ind);
+  };
+
+  wrapperOnClik = (ev: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+    ev.preventDefault();
+    ev.stopPropagation();
+  };
+
   render() {
     const {potentialToConnectPoint, ind} = this.props;
+    const {isOpenMenu} = this.state;
 
     return (
       <div
@@ -132,7 +152,16 @@ class PointClass extends Component<Props, State> {
           'PointComponent ' +
           (potentialToConnectPoint !== undefined && potentialToConnectPoint !== ind ? 'isConnection' : '')
         }
-        ref={this.pointRef}></div>
+        ref={this.pointRef}>
+        <div className={'PointComponentMenu ' + (isOpenMenu ? '' : 'hidden')} onClick={this.wrapperOnClik}>
+          <button className={'AddRemoveConnection'} onClick={this.setPotentialTopToConnect}>
+            {'ду'}
+          </button>
+          <button className={'DeleteButton'} onClick={this.deletePoint}>
+            {'Del'}
+          </button>
+        </div>
+      </div>
     );
   }
 }

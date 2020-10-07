@@ -2,9 +2,9 @@ import React, {Component} from 'react';
 import {connect, ConnectedProps} from 'react-redux';
 import {Point} from '../Interfaces/CanvasInterface';
 import {RootState} from '../Storage';
-import {addPoint, setConnection} from '../Storage/Actions/CanvasActions';
+import {addPoint} from '../Storage/Actions/CanvasActions';
 import {PointersType, PointersTypes} from '../Interfaces/CanvasInterface';
-import {getPointArray, isConnection} from '../Storage/CanvasReducer';
+import {getPoint, isConnection, getGeneralIndex} from '../Storage/CanvasReducer';
 import {PointComponent} from './PointComponent';
 import '../Style/Canvas.css';
 
@@ -15,14 +15,13 @@ const offset = 5;
 const mapState = (state: RootState, ownProps: ownProps) => {
   return {
     isRecording: state.ServiceReducer.isRecording,
-    pointsArray: getPointArray(state.CanvasReducer, ownProps.axes.axesType),
+    points: getPoint(state.CanvasReducer, ownProps.axes.axesType),
     isConnection: isConnection.bind(null, state.CanvasReducer),
   };
 };
 
 const mapDispatch = {
   addPoint,
-  setConnection,
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -134,7 +133,7 @@ class CanvasClass extends Component<Props, State> {
     const rect = canvas!.getBoundingClientRect();
 
     const first = ev.clientX - rect.left - offset;
-    const second = HEIGHT - ev.clientY;
+    const second = HEIGHT - ev.clientY + offset;
 
     if (second >= 0 && first >= 0 && first <= WIDTH - 2 * offset && second <= HEIGHT - 2 * offset) {
       this.setState({coordinates: {first, second}});
@@ -153,7 +152,7 @@ class CanvasClass extends Component<Props, State> {
   };
 
   componentDidUpdate = (prevProps: Props, prevState: State) => {
-    const {isRecording, pointsArray, isConnection} = this.props;
+    const {isRecording, points, isConnection} = this.props;
 
     const context = this.canvasRef.current!.getContext('2d', {alpha: false});
 
@@ -167,15 +166,19 @@ class CanvasClass extends Component<Props, State> {
       }
     }
 
-    if (prevProps.pointsArray !== pointsArray) {
+    if (prevProps.points !== points) {
       context!.clearRect(0, 0, WIDTH, HEIGHT);
 
-      pointsArray.forEach(drawPoint.bind(null, context!));
+      points.forEach(drawPoint.bind(null, context!));
 
-      pointsArray.forEach((pointA, i) => {
-        pointsArray.forEach((pointB, j) => {
-          if (i !== j && isConnection(i, j)) {
+      //хранит массив уже нарисованных связей
+      const helperArray: Array<number> = [];
+
+      points.forEach((pointA, i) => {
+        points.forEach((pointB, j) => {
+          if (i !== j && isConnection(i, j) && !helperArray.includes(getGeneralIndex(i, j))) {
             drawConnection(context!, pointA, pointB);
+            helperArray.push(getGeneralIndex(i, j));
           }
         });
       });
@@ -184,13 +187,13 @@ class CanvasClass extends Component<Props, State> {
 
   render() {
     const {coordinates} = this.state;
-    const {axes, pointsArray} = this.props;
+    const {axes, points} = this.props;
 
     return (
       <div className={'CanvasWrapper'}>
         <canvas className={'Canvas BackgroundCanvas'} width={WIDTH} height={HEIGHT} ref={this.backgroundCanRef} />
         <canvas className={'Canvas'} width={WIDTH} height={HEIGHT} ref={this.canvasRef} />
-        {pointsArray.map((point, ind) => {
+        {[...points].map(([ind, point]) => {
           const {first, second} = point;
 
           return (

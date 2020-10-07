@@ -4,7 +4,7 @@ import {D3_Point} from '../Interfaces/CanvasInterface';
 import {RootState} from '../Storage';
 import {addPoint} from '../Storage/Actions/CanvasActions';
 import {Point} from '../Interfaces/CanvasInterface';
-import {isConnection} from '../Storage/CanvasReducer';
+import {isConnection, getGeneralIndex} from '../Storage/CanvasReducer';
 import '../Style/Canvas.css';
 
 const HEIGHT = 440;
@@ -17,7 +17,7 @@ const YZ_ANGLE = 120;
 const mapState = (state: RootState) => {
   return {
     isRecording: state.ServiceReducer.isRecording,
-    pointsArray: state.CanvasReducer.pointsArray,
+    points: state.CanvasReducer.points,
     isConnection: isConnection.bind(null, state.CanvasReducer),
   };
 };
@@ -139,14 +139,18 @@ class CanvasClass extends Component<Props, State> {
 
   componentDidUpdate = (prevProps: Props, prevState: State) => {
     const context = this.canvasRef.current!.getContext('2d');
-    const {isConnection, pointsArray} = this.props;
+    const {isConnection, points} = this.props;
 
     context!.clearRect(0, 0, WIDTH, HEIGHT);
 
-    pointsArray.forEach((pointA, i) => {
-      pointsArray.forEach((pointB, j) => {
-        if (i !== j && isConnection(i, j)) {
+    //хранит массив уже нарисованных связей
+    const helperArray: Array<number> = [];
+
+    points.forEach((pointA, i) => {
+      points.forEach((pointB, j) => {
+        if (i !== j && isConnection(i, j) && !helperArray.includes(getGeneralIndex(i, j))) {
           drawConnection(context!, pointA, pointB);
+          helperArray.push(getGeneralIndex(i, j));
         }
       });
       drawPoint(context!, pointA);

@@ -8,15 +8,18 @@ import {PointersType} from '../Interfaces/CanvasInterface';
 type InferValueTypes<T> = T extends {[key: string]: infer U} ? U : never;
 type CanvasReducerActions = ReturnType<InferValueTypes<typeof actions>>;
 
+type pointsType = Map<number, D3_Point>;
+type connectionsType = Map<number, number>;
+
 export interface CanvasReducerStore {
-  pointsArray: Array<D3_Point>;
-  connectionsArray: Array<number>;
+  points: pointsType;
+  connections: connectionsType;
   potentialToConnectPoint: number | undefined;
 }
 
 const initialState: CanvasReducerStore = {
-  pointsArray: [],
-  connectionsArray: [],
+  points: new Map(),
+  connections: new Map(),
   potentialToConnectPoint: undefined,
 };
 
@@ -26,8 +29,18 @@ const defaultD3Poit = {
   z: 0,
 };
 
-const getGeneralIndex = (x: number, y: number): number => {
-  if (x === y) throw new Error('getGeneralIndex: x===y');
+const getFreeKey = (map: pointsType | connectionsType): number => {
+  let i = 0;
+
+  while (map.has(i)) {
+    i++;
+  }
+
+  return i;
+};
+
+export const getGeneralIndex = (x: number, y: number): number => {
+  if (x === y) throw new Error(`getGeneralIndex: x===y ${x} `);
 
   if (x < y) {
     const buf = x;
@@ -78,44 +91,79 @@ export function CanvasReducer(
   state: CanvasReducerStore = initialState,
   action: CanvasReducerActions,
 ): CanvasReducerStore {
+  const pointsFreeKey = getFreeKey(state.points);
+
   switch (action.type) {
     case CanvasActionsTypes.ADD_POINT: {
       const {data, pointType} = action.body;
       const newPoint = D2_TO_D3(pointType, data);
 
-      return {...state, pointsArray: [...state.pointsArray, newPoint]};
+      state.points.set(pointsFreeKey, newPoint);
+
+      return {...state, points: new Map(state.points)};
     }
     case CanvasActionsTypes.CLEAR_CANVAS: {
-      return {...initialState};
+      return {
+        ...initialState,
+        connections: new Map(),
+        points: new Map(),
+      };
     }
     case CanvasActionsTypes.SET_POINT: {
-      //сложный момент, нужно думать как лучше хранить точки
-      //у хранения точек в массиве есть существенный недостаток - удалять точки очень запарно.
-      //если просто сдвигать массив, то сдвинутся и индексы вершин, и тогда связи между ними будут потеряны.
-      //решение - хранить в map с ключем индексом
-
       const {data, ind, pointType} = action.body;
-      const {pointsArray} = state;
+      const {points} = state;
 
-      if (pointsArray[ind] === undefined) {
-        throw new Error('pointsArray[ind] === undefined');
+      if (!points.has(ind)) {
+        throw new Error('SET_POINT: points.has(ind) === false');
       }
 
-      pointsArray[ind] = D2_TO_D3(pointType, data, pointsArray[ind]);
+      points.set(ind, D2_TO_D3(pointType, data, points.get(ind)));
 
-      return {...state, pointsArray: [...pointsArray]};
+      return {...state, points: new Map(points)};
     }
-    case CanvasActionsTypes.SET_CONNECTION: {
+    case CanvasActionsTypes.REMOVE_POINT: {
+      const {ind} = action.body;
+      const {points, connections, potentialToConnectPoint} = state;
+
+      if (!points.has(ind)) {
+        throw new Error('REMOVE_POINT: points.has(ind) === false');
+      }
+
+      points.delete(ind);
+
+      for (const [i] of points) {
+        if (i !== ind) {
+          const helperInd = getGeneralIndex(i, ind);
+          if (connections.has(helperInd)) {
+            connections.delete(helperInd);
+          }
+        }
+      }
+
+      return {
+        ...state,
+        points: new Map(points),
+        connections: new Map(connections),
+        potentialToConnectPoint: potentialToConnectPoint === ind ? undefined : potentialToConnectPoint,
+      };
+    }
+    case CanvasActionsTypes.SET_DROP_CONNECTION: {
       const {secondTop} = action.body;
-      const {connectionsArray, potentialToConnectPoint} = state;
+      const {connections, potentialToConnectPoint} = state;
+      const ind = getGeneralIndex(potentialToConnectPoint!, secondTop);
 
       if (potentialToConnectPoint === undefined) {
-        throw new Error('case CanvasActionsTypes.SET_CONNECTION: potentialToConnectPoint == undefined');
+        throw new Error('case CanvasActionsTypes.SET_DROP_CONNECTION: potentialToConnectPoint == undefined');
       }
 
       if (potentialToConnectPoint !== secondTop) {
-        connectionsArray[getGeneralIndex(potentialToConnectPoint!, secondTop)] = 1;
-        return {...state, connectionsArray: [...connectionsArray]};
+        if (connections.has(ind)) {
+          connections.delete(ind);
+        } else {
+          connections.set(ind, 1);
+        }
+
+        return {...state, connections: new Map(connections)};
       } else {
         return state;
       }
@@ -136,14 +184,18 @@ export function CanvasReducer(
   }
 }
 
-export function getPointArray(state: CanvasReducerStore, pointersType: PointersType): Array<Point> {
-  return state.pointsArray.map((point) => D3_to_D2(pointersType, point));
+type pointsTypeD2 = Map<number, Point>;
+
+export function getPoint(state: CanvasReducerStore, pointersType: PointersType): pointsTypeD2 {
+  const res: pointsTypeD2 = new Map();
+
+  for (const [i, point] of state.points) {
+    res.set(i, D3_to_D2(pointersType, point));
+  }
+
+  return res;
 }
 
 export function isConnection(state: CanvasReducerStore, indA: number, indB: number): boolean {
-  if (indA === indB) {
-    return false;
-  } else {
-    return Boolean(state.connectionsArray[getGeneralIndex(indA, indB)]);
-  }
+  return Boolean(state.connections.get(getGeneralIndex(indA, indB)));
 }

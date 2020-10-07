@@ -11,7 +11,7 @@ import './Style/Main.css';
 
 const mapState = (state: RootState) => ({
   isRecording: state.ServiceReducer.isRecording,
-  ARRAY: state.CanvasReducer.pointsArray,
+  ARRAY: state.CanvasReducer.points,
 });
 
 const mapDispatch = {
