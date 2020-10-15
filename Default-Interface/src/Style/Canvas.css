@@ -1,0 +1,28 @@
+.active .CanvasWrapper .Canvas:hover {
+    border: 1px solid blue;
+}
+
+
+.Scoreboard {
+    height: 20px;
+    margin-top: 225px;
+}
+.CanvasWrapper {
+    width: 220px;
+    height: 220px;
+    user-select: none; 
+    position: relative;
+   float: left;
+   margin: 0px 5px 5px 5px;
+}
+
+.BackgroundCanvas.Canvas {
+    z-index: 1;
+}
+
+.Canvas {
+    z-index: 10;
+    position: absolute;
+    border: 1px solid;
+    box-sizing: border-box;
+}

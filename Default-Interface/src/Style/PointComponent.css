@@ -1,0 +1,32 @@
+.PointComponent {
+    position: absolute;
+    border-radius: 50%;
+    width: 10px;
+    height: 10px;
+    z-index: 100;
+}
+
+.PointComponentMenu {
+    position: relative;
+    margin-top: 10px;
+    width: 50px;
+}
+
+.AddRemoveConnection {
+}
+
+.DeleteButton {
+    /* margin-bottom: 10px; */
+}
+
+.isConnection:hover {
+    /* transform: scale(1.3); */
+}
+
+.isConnection {
+    border: 1px solid;
+}
+
+.hidden {
+    display: none;
+}

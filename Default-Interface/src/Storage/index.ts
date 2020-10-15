@@ -1,6 +1,12 @@
 import {combineReducers} from 'redux';
 
-const rootReducer = combineReducers({});
+import {CanvasReducer} from './CanvasReducer';
+import {ServiceReducer} from './ServiceReducer';
+
+const rootReducer = combineReducers({
+  CanvasReducer,
+  ServiceReducer,
+});
 
 export default rootReducer;
 export type RootState = ReturnType<typeof rootReducer>;
