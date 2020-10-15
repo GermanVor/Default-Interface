@@ -1,4 +1,4 @@
-import {ServiceActionsTypes} from '../../Interfaces/ActionsInterface';
+import {ServiceActionsTypes} from '../../Interfaces/FirstLabActionsInterface';
 
 export const toggleMakeRecording = () => ({
   type: ServiceActionsTypes.TOGGLE_MAKE_RECORD,

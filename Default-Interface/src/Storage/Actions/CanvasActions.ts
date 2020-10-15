@@ -1,5 +1,5 @@
 import {Point} from '../../Interfaces/CanvasInterface';
-import {CanvasActionsTypes} from '../../Interfaces/ActionsInterface';
+import {CanvasActionsTypes} from '../../Interfaces/FirstLabActionsInterface';
 import {PointersType} from '../../Interfaces/CanvasInterface';
 
 export const addPoint = (data: Point, pointType: PointersType) => ({

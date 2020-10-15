@@ -1,7 +1,7 @@
 // import {CanvasReducerActions, CanvasActionsTypes} from './Actions/Main';
 import * as actions from './Actions/CanvasActions';
 import {D3_Point, Point} from '../Interfaces/CanvasInterface';
-import {CanvasActionsTypes} from '../Interfaces/ActionsInterface';
+import {CanvasActionsTypes} from '../Interfaces/FirstLabActionsInterface';
 import {PointersTypes} from '../Interfaces/CanvasInterface';
 import {PointersType} from '../Interfaces/CanvasInterface';
 

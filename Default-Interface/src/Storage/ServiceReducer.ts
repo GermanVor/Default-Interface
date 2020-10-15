@@ -1,6 +1,6 @@
 import * as actions from './Actions/ServiceActions';
 import {Point} from '../Interfaces/CanvasInterface';
-import {ServiceActionsTypes} from '../Interfaces/ActionsInterface';
+import {ServiceActionsTypes} from '../Interfaces/FirstLabActionsInterface';
 
 type InferValueTypes<T> = T extends {[key: string]: infer U} ? U : never;
 type ReducerActions = ReturnType<InferValueTypes<typeof actions>>;

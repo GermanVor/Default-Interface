@@ -1,0 +1,21 @@
+.Bezier {
+    position: relative;
+    box-sizing: border-box;
+    border: solid 1px;
+    height: 100%;
+    width: 100%;
+    margin-top: 1000px;
+}
+
+.Bezier .BackgroundCanvas {
+    position: absolute;
+    
+}
+
+.Bezier .Menu {
+    margin-left: 700px;
+}
+
+.Bezier .MainCanvas {
+    position: absolute;
+}
