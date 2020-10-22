@@ -99,13 +99,25 @@ const converter = (D3_point: D3_Point): Point => {
   return result;
 };
 
-const drawPoint = (context: CanvasRenderingContext2D, D3_point: D3_Point) => {
+const drawPoint = (context: CanvasRenderingContext2D, D3_point: D3_Point, ind: number) => {
   const {first, second} = converter(D3_point);
+  context.fillStyle = '#302020';
 
   context.beginPath();
   context.arc(Math.floor(first), Math.floor(HEIGHT - second), 2, 0, Math.PI * 2, true);
   context.closePath();
   context.fill();
+
+  context.font = 'bold 12px sans-serif';
+  context.textBaseline = 'top';
+
+  context.fillStyle = '#a30e0e';
+  context.fillText(
+    `x:${D3_point.x}, y:${D3_point.y}, z:${D3_point.z}`,
+    Math.floor(first),
+    Math.floor(HEIGHT - second + 5),
+  );
+  context.fillText(`${String.fromCharCode(65 + ind)}`, Math.floor(first), Math.floor(HEIGHT - second - 15));
 };
 
 const drawConnection = (context: CanvasRenderingContext2D, a: D3_Point, b: D3_Point) => {
@@ -153,7 +165,7 @@ class CanvasClass extends Component<Props, State> {
           helperArray.push(getGeneralIndex(i, j));
         }
       });
-      drawPoint(context!, pointA);
+      drawPoint(context!, pointA, i);
     });
 
     return false;

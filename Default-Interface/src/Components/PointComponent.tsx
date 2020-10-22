@@ -55,7 +55,6 @@ class PointClass extends Component<Props, State> {
   }
 
   mouseDownToMove = (ev: MouseEvent) => {
-    console.log('Down');
     this.isMoving = true;
 
     const {parentRef, setPoint, ind, axesType} = this.props;
@@ -89,7 +88,6 @@ class PointClass extends Component<Props, State> {
     };
 
     const eventFinish = () => {
-      console.log('Finish');
       this.isMoving = false;
 
       parentRectCurrent!.removeEventListener('mousemove', setCoord);

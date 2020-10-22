@@ -26,7 +26,7 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 type State = {
   isRecording: boolean;
 };
-type Props = PropsFromRedux & {};
+type Props = PropsFromRedux;
 
 class App extends React.Component<Props, State> {
   constructor(props: Props) {

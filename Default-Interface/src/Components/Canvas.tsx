@@ -88,11 +88,16 @@ const DrawAxes = (context: CanvasRenderingContext2D, verticalAxisName: string, h
   context.fillText(`(${WIDTH - 2 * offset}, ${HEIGHT - 2 * offset})`, WIDTH - 2 * offset, 2 * offset);
 };
 
-const drawPoint = (context: CanvasRenderingContext2D, {first, second}: Point) => {
+const drawPoint = (context: CanvasRenderingContext2D, {first, second}: Point, ind: number) => {
+  context.fillStyle = '#302020';
+
   context!.beginPath();
   context!.arc(Math.floor(first + offset), Math.floor(HEIGHT - second - offset), 2, 0, Math.PI * 2, true);
   context!.closePath();
   context!.fill();
+
+  context.fillStyle = '#a30e0e';
+  context.fillText(`${String.fromCharCode(65 + ind)}`, Math.floor(first), Math.floor(HEIGHT - second - 15));
 };
 
 const drawConnection = (context: CanvasRenderingContext2D, firstTop: Point, secondTop: Point) => {
@@ -168,8 +173,6 @@ class CanvasClass extends Component<Props, State> {
     if (prevProps.points !== points) {
       context!.clearRect(0, 0, WIDTH, HEIGHT);
 
-      points.forEach(drawPoint.bind(null, context!));
-
       //хранит массив уже нарисованных связей
       const helperArray: Array<number> = [];
 
@@ -180,6 +183,8 @@ class CanvasClass extends Component<Props, State> {
             helperArray.push(getGeneralIndex(i, j));
           }
         });
+
+        drawPoint(context!, pointA, i);
       });
     }
   };
