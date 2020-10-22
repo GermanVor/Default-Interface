@@ -105,8 +105,9 @@ const drawConnection = (context: CanvasRenderingContext2D, firstTop: Point, seco
 };
 
 class CanvasClass extends Component<Props, State> {
-  private canvasRef: React.RefObject<HTMLCanvasElement>;
-  private backgroundCanRef: React.RefObject<HTMLCanvasElement>;
+  private canvasRef: React.RefObject<HTMLCanvasElement> = React.createRef();
+  private backgroundCanRef: React.RefObject<HTMLCanvasElement> = React.createRef();
+  private fieldRef: React.RefObject<HTMLDivElement> = React.createRef();
 
   constructor(props: Props) {
     super(props);
@@ -116,8 +117,6 @@ class CanvasClass extends Component<Props, State> {
         second: 0.0,
       },
     };
-    this.canvasRef = React.createRef();
-    this.backgroundCanRef = React.createRef();
   }
 
   componentDidMount() {
@@ -191,26 +190,33 @@ class CanvasClass extends Component<Props, State> {
 
     return (
       <div className={'CanvasWrapper'}>
-        <canvas className={'Canvas BackgroundCanvas'} width={WIDTH} height={HEIGHT} ref={this.backgroundCanRef} />
-        <canvas className={'Canvas'} width={WIDTH} height={HEIGHT} ref={this.canvasRef} />
-        {[...points].map(([ind, point]) => {
-          const {first, second} = point;
+        <div
+          className={'Field'}
+          ref={this.fieldRef}
+          style={{
+            width: WIDTH,
+            height: HEIGHT,
+          }}>
+          <canvas className={'Canvas BackgroundCanvas'} width={WIDTH} height={HEIGHT} ref={this.backgroundCanRef} />
+          <canvas className={'Canvas'} width={WIDTH} height={HEIGHT} ref={this.canvasRef} />
+          {[...points].map(([ind, point]) => {
+            const {first, second} = point;
 
-          return (
-            <PointComponent
-              key={`PointComponent-${ind}`}
-              //компоненты с других полей в это время смещаются благодаря этим координатам
-              coordinates={{
-                first,
-                second: HEIGHT - second - offset,
-              }}
-              ind={ind}
-              axesType={axes.axesType}
-              // используются по назначению в активном поле
-              coordinatesToMove={coordinates}
-            />
-          );
-        })}
+            return (
+              <PointComponent
+                key={`PointComponent-${ind}`}
+                //компоненты с других полей в это время смещаются благодаря этим координатам
+                coordinates={{
+                  first: first + offset,
+                  second: HEIGHT - second - offset,
+                }}
+                ind={ind}
+                axesType={axes.axesType}
+                parentRef={this.fieldRef}
+              />
+            );
+          })}
+        </div>
         <div className={'Scoreboard'}>
           {`${axes.horizontalAxisName}: ${coordinates.first} | ${axes.verticalAxisName}: ${coordinates.second}`}
         </div>

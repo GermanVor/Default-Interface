@@ -38,13 +38,13 @@ type ownProps = {
   coordinates: Point;
   ind: number;
   axesType: PointersType;
-  coordinatesToMove: Point;
+  parentRef: React.RefObject<HTMLDivElement>;
 };
 
 type Props = PropsFromRedux & ownProps;
 
 class PointClass extends Component<Props, State> {
-  private pointRef: React.RefObject<HTMLDivElement>;
+  private pointRef: React.RefObject<HTMLDivElement> = React.createRef();
   private isMoving = false;
 
   constructor(props: Props) {
@@ -52,20 +52,54 @@ class PointClass extends Component<Props, State> {
     this.state = {
       isOpenMenu: false,
     };
-    this.pointRef = React.createRef();
   }
 
-  mouseUpToEndMove = (ev: MouseEvent) => {
-    this.isMoving = false;
-  };
-
   mouseDownToMove = (ev: MouseEvent) => {
-    if (ev.button === 0) {
-      const elem = this.pointRef!.current;
+    console.log('Down');
+    this.isMoving = true;
 
-      this.isMoving = true;
-      elem!.addEventListener('mouseup', this.mouseUpToEndMove);
-    }
+    const {parentRef, setPoint, ind, axesType} = this.props;
+
+    const thisPoint = this.pointRef!.current;
+    const parentRectCurrent = parentRef!.current;
+    const ClientRect = thisPoint!.getBoundingClientRect();
+
+    thisPoint!.style.zIndex = '1000';
+
+    const parentRect = parentRectCurrent!.getBoundingClientRect();
+
+    const shiftX = ev.clientX - ClientRect!.left;
+    const shiftY = ev.clientY - ClientRect!.top;
+
+    const setCoord = (ev: MouseEvent) => {
+      const x = ev.clientX - parentRect.left - shiftX;
+      const y = ev.clientY - parentRect.top - shiftY;
+
+      thisPoint!.style.transform = `translate(${x}px, ${y}px)`;
+
+      setPoint(
+        {
+          //TODO разобраться наконец то с этой сранью, сделать человеческие margin
+          first: x - 5 + ClientRect.width / 2,
+          second: 215 - y - ClientRect.height / 2,
+        },
+        axesType,
+        ind,
+      );
+    };
+
+    const eventFinish = () => {
+      console.log('Finish');
+      this.isMoving = false;
+
+      parentRectCurrent!.removeEventListener('mousemove', setCoord);
+      thisPoint!.removeEventListener('mouseup', eventFinish);
+      parentRectCurrent!.removeEventListener('mouseleave', eventFinish);
+    };
+
+    parentRectCurrent!.addEventListener('mousemove', setCoord);
+
+    thisPoint!.addEventListener('mouseup', eventFinish);
   };
 
   mouseDownToStartConnection = (ev: MouseEvent) => {
@@ -78,23 +112,20 @@ class PointClass extends Component<Props, State> {
   //событие завершение добавления связи
   mouseDownToEndConnection = (ev: MouseEvent) => {
     if (ev.button === 0) {
-      console.log(44444444444);
       const {setDropConnection, ind} = this.props;
       setDropConnection(ind);
     }
   };
 
   componentDidUpdate(prevProps: Props) {
-    const {potentialToConnectPoint, coordinatesToMove, coordinates, setPoint, axesType, ind} = this.props;
+    const {potentialToConnectPoint, coordinates, ind} = this.props;
 
     const {first, second} = this.props.coordinates;
     const elem = this.pointRef!.current;
+    const ClientRect = elem!.getBoundingClientRect();
 
-    if (this.isMoving && prevProps.coordinatesToMove !== coordinatesToMove) {
-      setPoint(coordinatesToMove, axesType, ind);
-    } else if (prevProps.coordinates !== coordinates) {
-      elem!.style.left = `${first}px`;
-      elem!.style.top = `${second - elem!.clientHeight / 2}px`;
+    if (!this.isMoving && prevProps.coordinates !== coordinates) {
+      elem!.style.transform = `translate(${first - ClientRect!.width / 2}px, ${second - ClientRect!.height / 2}px)`;
     }
 
     //событие завершения добавления связи второй точки
@@ -103,18 +134,16 @@ class PointClass extends Component<Props, State> {
     } else {
       elem!.removeEventListener('mousedown', this.mouseDownToEndConnection);
     }
-
-    return false;
   }
 
   componentDidMount() {
     const {first, second} = this.props.coordinates;
     const elem = this.pointRef!.current;
+    const ClientRect = elem!.getBoundingClientRect();
 
     elem!.ondragstart = () => false;
 
-    elem!.style.left = `${first}px`;
-    elem!.style.top = `${second - elem!.clientHeight / 2}px`;
+    elem!.style.transform = `translate(${first - ClientRect!.width / 2}px, ${second - ClientRect!.height / 2}px)`;
 
     // событие начала перемещения
     elem!.addEventListener('mousedown', this.mouseDownToMove);
