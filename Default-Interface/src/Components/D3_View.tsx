@@ -219,29 +219,97 @@ class CanvasClass extends Component<Props, State> {
       return pointB;
     });
 
-    const lenght = Math.sqrt(Math.pow(points[0][0].x-points[0][lastInd].x, 2)+Math.pow(points[0][0].z-points[0][lastInd].z, 2));
-    const numberOfLines = 10;
-
-    const getPoint = (point_1: Point, point_2: Point, x: number, y:number, z: number): Point => {
+    const getPoint_x = (point_1: Point, point_2: Point, x: number): Point => {
+      const buff = (x - point_1.x) / (point_2.x - point_1.x);
       return {
-        x: (x - point_1.x) / (point_2.x - point_1.x),
-        y: (y - point_1.y) / (point_2.y - point_1.y),
-        z: (z - point_1.z) / (point_2.z - point_1.z),
+        x,
+        y: buff * (point_2.y - point_1.y) + point_1.y,
+        z: buff * (point_2.z - point_1.z) + point_1.z,
       }    
     };
- 
+
+    // вдоль оси Z
+    const middleP_1_lenght_z = Math.sqrt(Math.pow(points[1][0].x-points[1][lastInd].x, 2)+Math.pow(points[1][0].z-points[1][lastInd].z, 2));
+    const middleP_2_lenght_z = Math.sqrt(Math.pow(points[2][0].x-points[2][lastInd].x, 2)+Math.pow(points[2][0].z-points[2][lastInd].z, 2));
+
     // // рисуем сетку вдоль оси Z
-    for (let i = 0; i < numberOfLines; i++) {
-      const ind = i*Math.floor(lineX_1.length/numberOfLines);
-        
-      const middlePoint_1 = getPoint
+    const numberOfLines = 30;
+    for (let i = 0; i < 0; i++) {
+      const ind = Math.floor(i*lineX_1.length/numberOfLines);
+      
+      const X_1 = points[1][0].x + middleP_1_lenght_z/numberOfLines*i;
+      const middlePoint_1 = getPoint_x(
+        (points[1]).find( ({x}) => x <= X_1 )!,
+        (points[1]).find( ({x}) => x >= X_1 )!,
+        X_1 
+      );
+      
+      const X_2 = points[2][0].x + middleP_2_lenght_z/numberOfLines*i;
+      const middlePoint_2 = getPoint_x(
+        (points[2]).find( ({x}) => x <= X_2 ) || points[0][lastInd],
+        (points[2]).find( ({x}) => x >= X_2 ) || points[2][lastInd],
+        X_2 
+      );
 
       const bLine = getBezierLinesPoints([
         lineX_1[ind],
+        middlePoint_1,
+        middlePoint_2,
         lineX_2[ind]
-      ]).map(converter);
+      ]);
 
+      bLine.map(converter).reduce((pointA, pointB) => {
+        context.moveTo(pointA.x, pointA.y);
+        context.lineTo(pointB.x, pointB.y);
+  
+        return pointB;
+      });
+    }
 
+    const getPoint_z = (point_1: Point, point_2: Point, z: number): Point => {
+      const buff = (z - point_1.z) / (point_2.z - point_1.z);
+      return {
+        x: buff * (point_2.x - point_1.x) + point_1.x,
+        y: buff * (point_2.y - point_1.y) + point_1.y,
+        z,
+      }    
+    };
+
+    // вдоль оси X
+    const middleP_1_lenght_x = Math.sqrt(Math.pow(points[0][1].x-points[lastInd][1].x, 2)+Math.pow(points[0][1].z-points[lastInd][1].z, 2));
+    const middleP_2_lenght_x = Math.sqrt(Math.pow(points[0][2].x-points[lastInd][2].x, 2)+Math.pow(points[0][2].z-points[lastInd][2].z, 2));
+
+    // // рисуем сетку вдоль оси X
+    for (let i = 0; i < numberOfLines; i++) {
+      const ind = Math.floor(i*lineZ_1.length/numberOfLines);
+      
+      const Z_1 = points[0][1].z + middleP_1_lenght_x/numberOfLines*i; 
+      const middlePoint_1 = getPoint_z(
+        [points[0][1], points[1][1], points[2][1], points[3][1]].find( (a) => a!.z <= Z_1 ) || points[0][1],
+        [points[0][1], points[1][1], points[2][1], points[3][1]].find( (a) => a!.z >= Z_1 ) || points[3][1],
+        Z_1 
+      );
+      
+      const Z_2 = points[0][2].z + middleP_2_lenght_x/numberOfLines*i;
+      const middlePoint_2 = getPoint_z(
+        [points[0][2], points[1][2], points[2][2], points[3][2]].find( (a) => a!.z <= Z_2 ) || points[0][2],
+        [points[0][2], points[1][2], points[2][2], points[3][2]].find( (a) => a!.z >= Z_2 ) || points[3][2],
+        Z_2 
+      );
+
+      const bLine = getBezierLinesPoints([
+        lineZ_1[ind],
+        middlePoint_1,
+        middlePoint_2,
+        lineZ_2[ind]
+      ]);
+
+      bLine.map(converter).reduce((pointA, pointB) => {
+        context.moveTo(pointA.x, pointA.y);
+        context.lineTo(pointB.x, pointB.y);
+  
+        return pointB;
+      });
     }
 
     context.stroke();
