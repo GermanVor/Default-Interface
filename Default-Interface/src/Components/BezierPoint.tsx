@@ -3,16 +3,25 @@ import {connect, ConnectedProps} from 'react-redux';
 import {RootState} from '../Storage';
 import {getPoint} from '../Storage/BezierStorage';
 import {setPoint} from '../Storage/Actions/BezierActions';
+import {PointersTypesInterface} from '../Interfaces/CommonInterface';
+
 import '../Style/BezierPoint.css';
 
 const mapState = (state: RootState, ownProps: ownProps) => {
+  const {ind_1, ind_2, axisType} = ownProps;
   return {
-    point: getPoint(state.BezierReducer, ownProps.ind),
+    point: getPoint(state.BezierReducer, axisType, ind_1, ind_2),
   };
 };
 
-const mapDispatch = {
-  setPoint,
+const mapDispatch = (dispatch: Function, ownProps: ownProps) => {
+  const {axisType, ind_1, ind_2} = ownProps;
+
+  return {
+    setPoint: (first: number, second: number) => (
+      dispatch(setPoint(axisType, ind_1, ind_2, first, second))
+    ),
+  };
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -22,7 +31,9 @@ type State = {};
 
 type ownProps = {
   parentRef: React.RefObject<HTMLDivElement>;
-  ind: number;
+  ind_1: number;
+  ind_2: number;
+  axisType: PointersTypesInterface;
 };
 
 type Props = PropsFromRedux & ownProps;
@@ -38,7 +49,7 @@ class BezierClass extends Component<Props, State> {
   }
 
   onMouseDown = (ev: MouseEvent) => {
-    const {parentRef, setPoint, ind} = this.props;
+    const {parentRef, setPoint} = this.props;
     const thisPoint = this.pointRef!.current;
     const parentRect = parentRef.current!.getBoundingClientRect();
     const thisRect = thisPoint!.getBoundingClientRect();
@@ -49,17 +60,14 @@ class BezierClass extends Component<Props, State> {
     thisPoint!.style.zIndex = `${+this.zIndex + 10}`;
 
     const setCoord = (ev: MouseEvent) => {
-      const x = ev.clientX - parentRect.left - shiftX;
-      const y = ev.clientY - parentRect.top - shiftY;
+      const first = ev.clientX - parentRect.left - shiftX;
+      const second = ev.clientY - parentRect.top - shiftY;
 
-      thisPoint!.style.transform = `translate(${x}px, ${y}px)`;
+      thisPoint!.style.transform = `translate(${first}px, ${second}px)`;
 
-      setPoint(
-        {
-          x: x + thisRect.width / 2,
-          y: y + thisRect.height / 2,
-        },
-        ind,
+      setPoint (
+        first + thisRect.width / 2, 
+        second + thisRect.height / 2
       );
     };
 
@@ -84,12 +92,25 @@ class BezierClass extends Component<Props, State> {
     thisPoint!.addEventListener('mousedown', this.onMouseDown);
   }
 
+  componentDidUpdate(prevProps: Props) {
+    const {point} = this.props;
+
+    if (prevProps.point !== point) {
+      const thisPoint = this.pointRef!.current;
+      const thisRect = thisPoint!.getBoundingClientRect();
+      thisPoint!.style.transform = `translate(${point.x - thisRect.width / 2}px, ${point.y - thisRect.height / 2}px)`;
+    }
+  }
+
   render() {
-    const {ind} = this.props;
+    const {ind_1, ind_2} = this.props;
 
     return (
       <div className={'BezierPoint'} ref={this.pointRef}>
-        <div className={'BezierPointName'}>{String.fromCharCode(65 + ind)}</div>
+        <div className={'BezierPointName'}>
+          {String.fromCharCode(65 + ind_2)}
+          <sub>{`${ind_1},${ind_2}`}</sub>
+        </div>
       </div>
     );
   }

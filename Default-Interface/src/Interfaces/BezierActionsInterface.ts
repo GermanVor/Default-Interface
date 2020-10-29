@@ -8,4 +8,12 @@ export const Action = <const>{
 export interface Point {
   x: number;
   y: number;
-}
+  z: number;
+};
+
+export interface SimplePoint {
+  x: number;
+  y: number;
+};
+
+export type PointsArray = Array<Array<Point>>;

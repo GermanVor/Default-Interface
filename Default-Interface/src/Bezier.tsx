@@ -5,19 +5,14 @@ import {addPoint, dellPoint} from './Storage/Actions/BezierActions';
 import {Point} from './Interfaces/BezierActionsInterface';
 import {RootState} from './Storage';
 import './Style/Bezier.css';
+import {D3_Canvas} from './Components/D3_View';
+import {Y_Projection} from './Components/Y_Projection';
+import {getBezierLinesPoints} from './CommonFunctions/BezierFunctions';
+import {PointersTypes} from './Interfaces/CommonInterface';
 
-const WIDTH = 700;
-const HEIGHT = 500;
-
-const BEZIER_DRAW_STEP = 0.01;
-
-const getBezierBasis = (i: number, n: number, t: number): number => {
-  const factor = (i: number): number => {
-    return i <= 1 ? 1 : i * factor(i - 1);
-  };
-
-  return (factor(n) / (factor(i) * factor(n - i))) * Math.pow(t, i) * Math.pow(1 - t, n - i);
-};
+const WIDTH = 250;
+const HEIGHT = 250;
+const OFFSET = 10;
 
 const drawB = (context: CanvasRenderingContext2D) => {
   for (let x = 0.5; x < WIDTH; x += 10) {
@@ -25,46 +20,77 @@ const drawB = (context: CanvasRenderingContext2D) => {
     context.lineTo(x, HEIGHT);
   }
 
-  for (let y = 0.5; y < HEIGHT; y += 10) {
-    context.moveTo(0, y);
-    context.lineTo(WIDTH, y);
+  for (let z = 0.5; z < HEIGHT; z += 10) {
+    context.moveTo(0, z);
+    context.lineTo(WIDTH, z);
   }
 
   context.strokeStyle = '#eee';
   context.stroke();
-};
 
-const drawBezierLine = (context: CanvasRenderingContext2D, points: Array<Point>) => {
-  const arrayPointsToDraw: Array<Point> = [];
-  for (let t = 0; t < 1 + BEZIER_DRAW_STEP; t += BEZIER_DRAW_STEP) {
-    const k = arrayPointsToDraw.push({x: 0, y: 0}) - 1;
-    for (let i = 0; i < points.length; i++) {
-      const N = getBezierBasis(i, points.length - 1, t);
-
-      arrayPointsToDraw[k].x += points[i].x * N;
-      arrayPointsToDraw[k].y += points[i].y * N;
-    }
-  }
   context.beginPath();
   context.strokeStyle = '#000000';
 
-  arrayPointsToDraw.reduce((pointA, pointB) => {
-    context.moveTo(pointA.x, pointA.y);
-    context.lineTo(pointB.x, pointB.y);
+  context.moveTo(OFFSET, OFFSET);
+  context.lineTo(WIDTH - OFFSET, OFFSET);
 
-    return pointB;
-  });
+  context.font = 'bold 14px sans-serif';
+  context.textAlign = 'right';
+  context.textBaseline = 'top';
+  context.fillText('X', WIDTH - OFFSET, 15);
+
+  context.moveTo(OFFSET, OFFSET);
+  context.lineTo(OFFSET, HEIGHT - OFFSET);
+  context.textAlign = 'left';
+  context.textBaseline = 'bottom';
+  context.fillText('Z', 15, HEIGHT - OFFSET);
 
   context.stroke();
+};
+
+const drawPointsLine = (context: CanvasRenderingContext2D, points: Array<Array<Point>>) => {
+  points.forEach((points_2) => {
+    context.beginPath();
+    context.strokeStyle = '#e83737';
+
+    points_2.reduce((pointA, pointB) => {
+      context.moveTo(pointA.x, pointA.z);
+      context.lineTo(pointB.x, pointB.z);
+
+      return pointB;
+    });
+
+    context.stroke();
+
+    // if (ind === 0 || ind === points.length-1 ) {
+    //   context.beginPath();
+    //   context.strokeStyle = '#000000';
+
+    //   const arrayPointsToDraw = getBezierLinesPoints(points_2);
+
+    //   arrayPointsToDraw.reduce((pointA, pointB) => {
+    //       context.moveTo(pointA.x, pointA.z);
+    //       context.lineTo(pointB.x, pointB.z);
+
+    //       return pointB;
+    //   });
+
+    //   context.stroke();
+    // };
+  });
 
   context.beginPath();
   context.strokeStyle = '#e83737';
 
-  points.reduce((pointA, pointB) => {
-    context.moveTo(pointA.x, pointA.y);
-    context.lineTo(pointB.x, pointB.y);
+  points.reduce((points_1, points_2) => {
+    points_1.forEach((pointA, ind) => {
+      const pointB = points_2[ind];
 
-    return pointB;
+      context.moveTo(pointA.x, pointA.z);
+      context.lineTo(pointB.x, pointB.z);
+    });
+
+    return points_2;
   });
 
   context.stroke();
@@ -102,7 +128,7 @@ class BezierClass extends React.Component<Props, State> {
       const context = this.mainCanRef.current!.getContext('2d');
       context!.clearRect(0, 0, WIDTH, HEIGHT);
 
-      drawBezierLine(context!, points);
+      drawPointsLine(context!, points);
     }
   }
 
@@ -113,7 +139,7 @@ class BezierClass extends React.Component<Props, State> {
     drawB(backgroundContext!);
 
     const context = this.mainCanRef.current!.getContext('2d');
-    drawBezierLine(context!, points);
+    drawPointsLine(context!, points);
   }
 
   addPoint = () => {
@@ -126,24 +152,40 @@ class BezierClass extends React.Component<Props, State> {
 
   render() {
     const {points} = this.props;
+
     return (
       <div className={'Bezier'}>
+        <canvas className={'BackgroundCanvas'} width={WIDTH} height={HEIGHT} ref={this.backgroundCanRef} />
         <div
           className={'Wrapper'}
           style={{
-            width: WIDTH,
-            height: HEIGHT,
+            width: WIDTH-2*OFFSET,
+            height: HEIGHT-2*OFFSET,
+            margin: OFFSET
           }}
           ref={this.divFieldRef}>
-          <canvas className={'BackgroundCanvas'} width={WIDTH} height={HEIGHT} ref={this.backgroundCanRef} />
-          <canvas className={'MainCanvas'} width={WIDTH} height={HEIGHT} ref={this.mainCanRef} />
-          {points.map((point, ind) => {
-            return <BezierPointComponent parentRef={this.divFieldRef} ind={ind} key={`BezierPointComponent-${ind}`} />;
+          <canvas className={'MainCanvas'} 
+            width={WIDTH-2*OFFSET} 
+            height={HEIGHT-2*OFFSET} 
+            ref={this.mainCanRef} 
+          />
+          {points.map((points_2, ind_1) => {
+            return points_2.map((point, ind_2) => {
+              return (
+                <BezierPointComponent
+                  parentRef={this.divFieldRef}
+                  ind_1={ind_1}
+                  ind_2={ind_2}
+                  axisType={PointersTypes.XZ_axis}
+                  key={`Bezier-BezierPointComponent-${ind_1}-${ind_2}`}
+                />
+              );
+            });
           })}
-          <div className={'Menu'}>
-            <button onClick={this.addPoint}>{'Add Point'}</button>
-            <button onClick={this.deletePoint}>{'Delete'}</button>
-          </div>
+        </div>
+        <div>
+          <Y_Projection />
+          <D3_Canvas />
         </div>
       </div>
     );
