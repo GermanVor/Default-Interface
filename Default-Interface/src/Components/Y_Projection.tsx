@@ -3,13 +3,12 @@ import {connect, ConnectedProps} from 'react-redux';
 import {BezierPointComponent} from '../Components/BezierPoint';
 import {Point} from '../Interfaces/BezierActionsInterface';
 import {RootState} from '../Storage';
-import '../Style/Y_Projection.css';
 import {getBezierLinesPoints} from '../CommonFunctions/BezierFunctions';
 import {PointersTypes} from '../Interfaces/CommonInterface';
 import {AxisOption} from '../Interfaces/CommonInterface';
 
-const WIDTH = 250;
-const HEIGHT = 250;
+const WIDTH = 430;
+const HEIGHT = 430;
 
 const OFFSET = 10;
 
@@ -29,7 +28,7 @@ const axisOptions: Array<AxisOption> = [
 
 type State = {
   axis: AxisOption;
-  ind: number
+  ind: number;
 };
 
 type Props = PropsFromRedux & {};
@@ -43,25 +42,25 @@ class Y_ProjectionClass extends React.Component<Props, State> {
     super(props);
     this.state = {
       axis: {...axisOptions[0]},
-      ind: 0
+      ind: 0,
     };
   }
 
-  getCoord = (point: Point) : {x: number, y: number} => {
+  getCoord = (point: Point): {x: number; y: number} => {
     const {axis} = this.state;
     const res = {
       y: point.y,
-      x: 0
-    }
+      x: 0,
+    };
 
     if (axis.type === PointersTypes.XY_axis) {
       res.x = point.x;
-    } else if (axis.type === PointersTypes.ZY_axis ) {
+    } else if (axis.type === PointersTypes.ZY_axis) {
       res.x = point.z;
     }
 
     return res;
-  }
+  };
 
   getPointsArr = () => {
     const {axis, ind} = this.state;
@@ -70,13 +69,13 @@ class Y_ProjectionClass extends React.Component<Props, State> {
     if (axis.type === PointersTypes.XY_axis) {
       return points[ind];
     } else if (axis.type === PointersTypes.ZY_axis) {
-      return points.map( pointsArr => {
+      return points.map((pointsArr) => {
         return pointsArr[ind];
       });
     } else {
-      throw Error("");
+      throw Error('');
     }
-  }
+  };
 
   drawB = () => {
     const secondAxis = this.state.axis;
@@ -101,14 +100,15 @@ class Y_ProjectionClass extends React.Component<Props, State> {
     context!.moveTo(OFFSET, OFFSET);
     context!.lineTo(WIDTH - OFFSET, OFFSET);
     context!.font = 'bold 14px sans-serif';
-    context!.textAlign = 'left';
+    context!.textAlign = 'right';
     context!.textBaseline = 'top';
-    context!.fillText(secondAxis.name, WIDTH - OFFSET, OFFSET+5);
+    context!.fillText(secondAxis.name, WIDTH - OFFSET, OFFSET + 5);
 
     context!.moveTo(OFFSET, OFFSET);
     context!.lineTo(OFFSET, HEIGHT - OFFSET);
+    context!.textAlign = 'left';
     context!.textBaseline = 'bottom';
-    context!.fillText('Y', OFFSET+5, HEIGHT - OFFSET);
+    context!.fillText('Y', OFFSET + 5, HEIGHT - OFFSET);
 
     context!.stroke();
   };
@@ -132,10 +132,7 @@ class Y_ProjectionClass extends React.Component<Props, State> {
 
     context.stroke();
 
-    if (
-      points.length === (ind + 1) ||
-      0 === (ind)
-    ) {
+    if (points.length === ind + 1 || 0 === ind) {
       context.beginPath();
       context.strokeStyle = '#000000';
 
@@ -149,20 +146,16 @@ class Y_ProjectionClass extends React.Component<Props, State> {
       });
 
       context.stroke();
-    };
+    }
   };
 
   componentDidUpdate(prevProps: Props, prevState: State) {
     const {points} = this.props;
     const {axis, ind} = this.state;
 
-    if (
-      points !== prevProps.points ||
-      axis !== prevState.axis ||
-      ind !== prevState.ind
-    ) {
+    if (points !== prevProps.points || axis !== prevState.axis || ind !== prevState.ind) {
       this.drawPointsLine();
-    };
+    }
 
     if (axis !== prevState.axis) {
       const backgroundContext = this.backgroundCanRef!.current!.getContext('2d');
@@ -182,7 +175,6 @@ class Y_ProjectionClass extends React.Component<Props, State> {
 
   renderPoints = () => {
     const {axis, ind} = this.state;
-    const {points} = this.props;
 
     if (axis.type === PointersTypes.XY_axis) {
       return this.getPointsArr().map((point, ind_2) => {
@@ -195,9 +187,9 @@ class Y_ProjectionClass extends React.Component<Props, State> {
             key={`Y_Projection-BezierPointComponent-${ind}-${ind_2}`}
           />
         );
-      })
+      });
     } else if (axis.type === PointersTypes.ZY_axis) {
-      return this.getPointsArr().map( (points2, ind_1) => {
+      return this.getPointsArr().map((points2, ind_1) => {
         return (
           <BezierPointComponent
             parentRef={this.divFieldRef}
@@ -206,49 +198,46 @@ class Y_ProjectionClass extends React.Component<Props, State> {
             axisType={axis.type}
             key={`Y_Projection-BezierPointComponent-${ind_1}-${ind}`}
           />
-        )
+        );
       });
-    };
-  }
+    }
+  };
 
   render() {
     const {points} = this.props;
-    
+
     return (
-      <div className={'Y_Projection'}>
+      <div className={'Bezier'}>
         <canvas className={'BackgroundCanvas'} width={WIDTH} height={HEIGHT} ref={this.backgroundCanRef} />
         <div
           className={'Wrapper'}
           style={{
-            width: WIDTH-2*OFFSET,
-            height: HEIGHT-2*OFFSET,
-            margin: OFFSET
+            width: WIDTH - 2 * OFFSET,
+            height: HEIGHT - 2 * OFFSET,
+            margin: OFFSET,
           }}
           ref={this.divFieldRef}>
-          <canvas className={'MainCanvas'} 
-            width={WIDTH-2*OFFSET} 
-            height={HEIGHT-2*OFFSET} 
-            ref={this.mainCanRef} 
+          <canvas
+            className={'MainCanvas'}
+            width={WIDTH - 2 * OFFSET}
+            height={HEIGHT - 2 * OFFSET}
+            ref={this.mainCanRef}
           />
           {this.renderPoints()}
         </div>
-        <div>
-          {axisOptions.map((el) => {
-            return (<button 
-              onClick={() => this.changeAxis({...el})}
-              key={el.name}
-            >
-              {`${el.name}`}
-            </button>)
+        <div className={'Menu'}>
+          {points.map((point, ind) => {
+            return (
+              <button onClick={() => this.setState({ind: ind})} key={`eqwfwafs-${ind}`}>
+                {ind}
+              </button>
+            );
           })}
           <br />
-          {points.map( (point, ind) => {
+          {axisOptions.map((el) => {
             return (
-              <button 
-                onClick={ () => this.setState({ind: ind}) }
-                key={`eqwfwafs-${ind}`} 
-              >
-                {ind}
+              <button onClick={() => this.changeAxis({...el})} key={el.name}>
+                {`${el.name}`}
               </button>
             );
           })}

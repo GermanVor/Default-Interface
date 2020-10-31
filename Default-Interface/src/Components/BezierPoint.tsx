@@ -18,9 +18,7 @@ const mapDispatch = (dispatch: Function, ownProps: ownProps) => {
   const {axisType, ind_1, ind_2} = ownProps;
 
   return {
-    setPoint: (first: number, second: number) => (
-      dispatch(setPoint(axisType, ind_1, ind_2, first, second))
-    ),
+    setPoint: (first: number, second: number) => dispatch(setPoint(axisType, ind_1, ind_2, first, second)),
   };
 };
 
@@ -65,10 +63,7 @@ class BezierClass extends Component<Props, State> {
 
       thisPoint!.style.transform = `translate(${first}px, ${second}px)`;
 
-      setPoint (
-        first + thisRect.width / 2, 
-        second + thisRect.height / 2
-      );
+      setPoint(first + thisRect.width / 2, second + thisRect.height / 2);
     };
 
     const eventFinish = () => {

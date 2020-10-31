@@ -7,11 +7,10 @@ import {RootState} from './Storage';
 import './Style/Bezier.css';
 import {D3_Canvas} from './Components/D3_View';
 import {Y_Projection} from './Components/Y_Projection';
-import {getBezierLinesPoints} from './CommonFunctions/BezierFunctions';
 import {PointersTypes} from './Interfaces/CommonInterface';
 
-const WIDTH = 250;
-const HEIGHT = 250;
+const WIDTH = 430;
+const HEIGHT = 430;
 const OFFSET = 10;
 
 const drawB = (context: CanvasRenderingContext2D) => {
@@ -61,22 +60,6 @@ const drawPointsLine = (context: CanvasRenderingContext2D, points: Array<Array<P
     });
 
     context.stroke();
-
-    // if (ind === 0 || ind === points.length-1 ) {
-    //   context.beginPath();
-    //   context.strokeStyle = '#000000';
-
-    //   const arrayPointsToDraw = getBezierLinesPoints(points_2);
-
-    //   arrayPointsToDraw.reduce((pointA, pointB) => {
-    //       context.moveTo(pointA.x, pointA.z);
-    //       context.lineTo(pointB.x, pointB.z);
-
-    //       return pointB;
-    //   });
-
-    //   context.stroke();
-    // };
   });
 
   context.beginPath();
@@ -159,15 +142,16 @@ class BezierClass extends React.Component<Props, State> {
         <div
           className={'Wrapper'}
           style={{
-            width: WIDTH-2*OFFSET,
-            height: HEIGHT-2*OFFSET,
-            margin: OFFSET
+            width: WIDTH - 2 * OFFSET,
+            height: HEIGHT - 2 * OFFSET,
+            margin: OFFSET,
           }}
           ref={this.divFieldRef}>
-          <canvas className={'MainCanvas'} 
-            width={WIDTH-2*OFFSET} 
-            height={HEIGHT-2*OFFSET} 
-            ref={this.mainCanRef} 
+          <canvas
+            className={'MainCanvas'}
+            width={WIDTH - 2 * OFFSET}
+            height={HEIGHT - 2 * OFFSET}
+            ref={this.mainCanRef}
           />
           {points.map((points_2, ind_1) => {
             return points_2.map((point, ind_2) => {
@@ -182,10 +166,6 @@ class BezierClass extends React.Component<Props, State> {
               );
             });
           })}
-        </div>
-        <div>
-          <Y_Projection />
-          <D3_Canvas />
         </div>
       </div>
     );

@@ -4,3 +4,7 @@ body {
 -o-user-select: none; /* Opera Presto (не поддерживается) */
 -webkit-user-select: none; /* Google Chrome, Opera Next, Safari */
 }
+
+.Second {
+    display: flex;
+}

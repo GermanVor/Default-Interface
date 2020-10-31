@@ -1,3 +1,13 @@
 .D3_Canvas {
     position: relative;
+    box-sizing: border-box;
+    width: auto;
+}
+
+.D3_Canvas button {
+    z-index: 10;
+}
+
+.D3_Canvas .Wrapper {
+    position: relative;
 }

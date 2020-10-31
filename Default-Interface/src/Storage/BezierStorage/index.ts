@@ -1,6 +1,5 @@
-// import {ActionsType, CanvasActionsTypes} from './Actions/Main';
 import * as actions from '../Actions/BezierActions';
-import {SimplePoint, Point, PointsArray} from '../../Interfaces/BezierActionsInterface';
+import {SimplePoint, PointsArray} from '../../Interfaces/BezierActionsInterface';
 import {Action} from '../../Interfaces/BezierActionsInterface';
 import {PointersTypes, PointersTypesInterface} from '../../Interfaces/CommonInterface';
 
@@ -30,8 +29,8 @@ pointsArray.forEach((points, i) => {
   baseLine.forEach((point, j) => {
     points.push({
       ...point,
-      x: point.x + j*delta,
-      z: point.z + i*delta
+      x: point.x + j * delta,
+      z: point.z + i * delta,
     });
   });
 });
@@ -55,7 +54,7 @@ export function BezierReducer(state: StateType = initialState, action: ActionsTy
 
       const point = state.points[ind_1][ind_2];
 
-      // меняет коориданты конкретной оси, третья координата остается неизменной 
+      // меняет коориданты конкретной оси, третья координата остается неизменной
       if (axisType === PointersTypes.XZ_axis) {
         point.x = first;
         point.z = second;
@@ -65,7 +64,7 @@ export function BezierReducer(state: StateType = initialState, action: ActionsTy
       } else if (axisType === PointersTypes.ZY_axis) {
         point.z = first;
         point.y = second;
-      };
+      }
 
       state.points[ind_1] = [...state.points[ind_1]];
       state.points[ind_1][ind_2] = {...point};
@@ -86,7 +85,12 @@ export function BezierReducer(state: StateType = initialState, action: ActionsTy
   }
 }
 
-export const getPoint = (state: StateType, axisType: PointersTypesInterface, ind_1: number, ind_2: number): SimplePoint => {
+export const getPoint = (
+  state: StateType,
+  axisType: PointersTypesInterface,
+  ind_1: number,
+  ind_2: number,
+): SimplePoint => {
   if (state.points[ind_1][ind_2] === undefined) {
     throw Error('state.points[ind] === undefined');
   } else {
@@ -96,21 +100,21 @@ export const getPoint = (state: StateType, axisType: PointersTypesInterface, ind
       case PointersTypes.XY_axis: {
         return {
           x: point.x,
-          y: point.y
+          y: point.y,
         };
-      };
+      }
       case PointersTypes.XZ_axis: {
         return {
           x: point.x,
-          y: point.z
+          y: point.z,
         };
-      };
+      }
       case PointersTypes.ZY_axis: {
         return {
           x: point.z,
-          y: point.y
-        }
-      };
-    };
-  };
+          y: point.y,
+        };
+      }
+    }
+  }
 };

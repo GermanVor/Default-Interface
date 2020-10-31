@@ -1,5 +1,4 @@
-import {Point, SimplePoint} from '../Interfaces/BezierActionsInterface';
-import {PointersTypes, PointersTypesInterface} from '../Interfaces/CommonInterface';
+import {Point} from '../Interfaces/BezierActionsInterface';
 
 const BEZIER_DRAW_STEP = 0.01;
 
