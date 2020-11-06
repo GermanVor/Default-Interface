@@ -7,9 +7,7 @@ import '../Style/PointComponent.css';
 import {setPolygonPointType} from '../Storage/PolygonReducer/Actions/PolygonActionsInterface';
 import {setScreenPointType} from '../Storage/ScreenReducer/Action/ScreenActionsInterface';
 
-const mapState = (state: RootState, ownProps: ownProps) => ({
-    // point: state.PolygonReducer.polygonPoints[ownProps.ind]
-});
+const mapState = (state: RootState, ownProps: ownProps) => ({});
 
 const mapDispatch = (dispatch: Function, ownProps: ownProps) => {
     const {ind, ownSetPoint} = ownProps;

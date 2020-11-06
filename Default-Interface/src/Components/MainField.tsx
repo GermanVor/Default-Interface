@@ -47,28 +47,26 @@ class MainFieldClass extends React.Component<Props, State> {
         if (polygonPoints !== prevProps.polygonPoints) {
             const context = this.mainCanRef.current!.getContext('2d');
             context!.clearRect(0, 0, canvasStyle.width, canvasStyle.height);
+            context!.setLineDash([]);
 
-            this.drawlines(context!, polygonPoints);
+            this.drawlines(context!, [...polygonPoints, polygonPoints[0]]);
         }
 
         if (screenPoint !== prevProps.screenPoint) {
             const context = this.screenCanRef.current!.getContext('2d');
             context!.clearRect(0, 0, canvasStyle.width, canvasStyle.height);
+            context!.setLineDash([]);
 
-            const arr: Array<ScreenPoint> = [
-                screenPoint[0],
-                {...screenPoint[0], x: screenPoint[1].x},
-                screenPoint[1],
-                {...screenPoint[1], x: screenPoint[0].x},
-            ];
-
-            this.drawlines(context!, arr);
+            this.drawScreen();
         }
     }
 
-    drawlines = (context: CanvasRenderingContext2D, pointsArr: Array<ScreenPoint>) => {
-        context.beginPath();
-        context.strokeStyle = '#000000';
+    drawlines = (context: CanvasRenderingContext2D, pointsArr: Array<ScreenPoint>, isDefaultStyle = true) => {
+        if (isDefaultStyle) {
+            context.beginPath();
+            context.strokeStyle = '#000000';
+            context!.setLineDash([0]);
+        }
 
         pointsArr.reduce((pointA, pointB) => {
             context.moveTo(pointA.x, pointA.y);
@@ -77,26 +75,66 @@ class MainFieldClass extends React.Component<Props, State> {
             return pointB;
         });
 
-        context.moveTo(pointsArr[0].x, pointsArr[0].y);
-        context.lineTo(pointsArr[pointsArr.length - 1].x, pointsArr[pointsArr.length - 1].y);
-
         context.stroke();
     };
 
-    componentDidMount() {
-        const {screenPoint, polygonPoints} = this.props;
-        this.drawB();
-
-        this.drawlines(this.mainCanRef.current!.getContext('2d')!, polygonPoints);
-
+    drawScreen = () => {
+        const {screenPoint} = this.props;
         const arr: Array<ScreenPoint> = [
             screenPoint[0],
             {...screenPoint[0], x: screenPoint[1].x},
             screenPoint[1],
             {...screenPoint[1], x: screenPoint[0].x},
+            screenPoint[0],
         ];
 
-        this.drawlines(this.screenCanRef.current!.getContext('2d')!, arr);
+        const context = this.screenCanRef.current!.getContext('2d');
+        if (!context) return;
+
+        this.drawlines(context, arr);
+
+        context.beginPath();
+        context!.setLineDash([3, 4]);
+
+        arr.reduce((pointA, pointB, ind) => {
+            if (ind % 2) {
+                const y = pointA.y;
+
+                const x_1 = pointA.x < pointB.x ? pointA.x : pointB.x;
+                const x_2 = pointA.x > pointB.x ? pointA.x : pointB.x;
+
+                context.moveTo(0, y);
+                context.lineTo(x_1, y);
+
+                context.moveTo(x_2, y);
+                context.lineTo(canvasStyle.width, y);
+            } else {
+                const x = pointA.x;
+
+                const y_1 = pointA.y < pointB.y ? pointA.y : pointB.y;
+                const y_2 = pointA.y > pointB.y ? pointA.y : pointB.y;
+
+                context.moveTo(x, 0);
+                context.lineTo(x, y_1);
+
+                context.moveTo(x, y_2);
+                context.lineTo(x, canvasStyle.height);
+            }
+
+            return pointB;
+        });
+
+        context.stroke();
+    };
+
+    componentDidMount() {
+        const {polygonPoints} = this.props;
+        this.drawB();
+
+        const arr = [...polygonPoints, polygonPoints[0]];
+        this.drawlines(this.mainCanRef.current!.getContext('2d')!, arr);
+
+        this.drawScreen();
     }
 
     drawB = () => {
