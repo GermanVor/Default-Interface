@@ -7,3 +7,15 @@ export const setScreenPoint: setScreenPointType = (ind, data) => ({
         data,
     },
 });
+
+export const addScreenPoint = () => ({
+    type: Action.ADD_POINT,
+});
+
+export const dropScreenPoints = () => ({
+    type: Action.DROP_POINTS,
+});
+
+export const dellScreenPoint = () => ({
+    type: Action.REMOVE_POINT,
+});

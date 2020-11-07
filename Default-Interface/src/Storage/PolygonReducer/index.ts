@@ -11,9 +11,9 @@ export type StateType = {
 
 const getInitialPolygonPoints = (): Array<PolygonPoint> =>
     [
-        {x: 20, y: 100},
-        {x: 120, y: 100},
-        {x: 80, y: 160},
+        {x: 20, y: 200},
+        {x: 120, y: 200},
+        {x: 150, y: 250},
     ].map((point) => ({...point}));
 
 const initialState: StateType = {

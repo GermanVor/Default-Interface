@@ -1,11 +1,24 @@
 import React from 'react';
 import {connect, ConnectedProps} from 'react-redux';
-import {addPoint, dellPoint, dropPoints} from '../Storage/PolygonReducer/Actions/PolygonReducerAction';
+import {
+    addPolygonPoint,
+    dellPolygonPoint,
+    dropPolygonPoints,
+    setPolygonPoint,
+} from '../Storage/PolygonReducer/Actions/PolygonReducerAction';
+import {
+    setScreenPoint,
+    addScreenPoint,
+    dropScreenPoints,
+    dellScreenPoint,
+} from '../Storage/ScreenReducer/Action/ScreenReducerAction';
+
+import {StartWeilerAthertonAlgoritm, inPoly} from '../Functions/Algoritm';
+
 import {ScreenPoint} from '../Interfaces/PolygonPointsInterface';
 import {RootState} from '../Storage';
 import {PointComponent} from './PointComponent';
-import {setPolygonPoint} from '../Storage/PolygonReducer/Actions/PolygonReducerAction';
-import {setScreenPoint} from '../Storage/ScreenReducer/Action/ScreenReducerAction';
+
 import '../Style/MainField.css';
 
 const canvasStyle = {
@@ -19,9 +32,12 @@ const mapState = (state: RootState) => ({
 });
 
 const mapDispatch = {
-    dropPoints,
-    addPoint,
-    dellPoint,
+    dropPolygonPoints,
+    addPolygonPoint,
+    dellPolygonPoint,
+    addScreenPoint,
+    dropScreenPoints,
+    dellScreenPoint,
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -47,9 +63,21 @@ class MainFieldClass extends React.Component<Props, State> {
         if (polygonPoints !== prevProps.polygonPoints) {
             const context = this.mainCanRef.current!.getContext('2d');
             context!.clearRect(0, 0, canvasStyle.width, canvasStyle.height);
-            context!.setLineDash([]);
 
             this.drawlines(context!, [...polygonPoints, polygonPoints[0]]);
+
+            const inPolyPoint = inPoly.bind(null, screenPoint);
+
+            // console.log('-------------------------------');
+            // polygonPoints.forEach( (point, ind) => {
+            //     if (inPolyPoint(point)) {
+            //         console.log(`Точка ${String.fromCharCode(65 + ind)} принадлежит экрану`);
+            //     }
+            // })
+            // console.log('-------------------------------');
+
+            console.clear();
+            StartWeilerAthertonAlgoritm(polygonPoints, screenPoint);
         }
 
         if (screenPoint !== prevProps.screenPoint) {
@@ -80,61 +108,30 @@ class MainFieldClass extends React.Component<Props, State> {
 
     drawScreen = () => {
         const {screenPoint} = this.props;
-        const arr: Array<ScreenPoint> = [
-            screenPoint[0],
-            {...screenPoint[0], x: screenPoint[1].x},
-            screenPoint[1],
-            {...screenPoint[1], x: screenPoint[0].x},
-            screenPoint[0],
-        ];
+
+        const arr = [...screenPoint, screenPoint[0]];
 
         const context = this.screenCanRef.current!.getContext('2d');
         if (!context) return;
 
-        this.drawlines(context, arr);
-
         context.beginPath();
-        context!.setLineDash([3, 4]);
+        context.strokeStyle = '#000000';
+        context.setLineDash([2, 4]);
 
-        arr.reduce((pointA, pointB, ind) => {
-            if (ind % 2) {
-                const y = pointA.y;
-
-                const x_1 = pointA.x < pointB.x ? pointA.x : pointB.x;
-                const x_2 = pointA.x > pointB.x ? pointA.x : pointB.x;
-
-                context.moveTo(0, y);
-                context.lineTo(x_1, y);
-
-                context.moveTo(x_2, y);
-                context.lineTo(canvasStyle.width, y);
-            } else {
-                const x = pointA.x;
-
-                const y_1 = pointA.y < pointB.y ? pointA.y : pointB.y;
-                const y_2 = pointA.y > pointB.y ? pointA.y : pointB.y;
-
-                context.moveTo(x, 0);
-                context.lineTo(x, y_1);
-
-                context.moveTo(x, y_2);
-                context.lineTo(x, canvasStyle.height);
-            }
-
-            return pointB;
-        });
-
-        context.stroke();
+        this.drawlines(context, arr, false);
     };
 
     componentDidMount() {
-        const {polygonPoints} = this.props;
+        const {polygonPoints, screenPoint} = this.props;
         this.drawB();
 
         const arr = [...polygonPoints, polygonPoints[0]];
         this.drawlines(this.mainCanRef.current!.getContext('2d')!, arr);
 
         this.drawScreen();
+
+        // сам алготим получения многоуголника ебучего
+        StartWeilerAthertonAlgoritm(polygonPoints, screenPoint);
     }
 
     drawB = () => {
@@ -157,7 +154,16 @@ class MainFieldClass extends React.Component<Props, State> {
     };
 
     render() {
-        const {polygonPoints, addPoint, dellPoint, dropPoints, screenPoint} = this.props;
+        const {
+            polygonPoints,
+            addPolygonPoint,
+            dellPolygonPoint,
+            dropPolygonPoints,
+            addScreenPoint,
+            dropScreenPoints,
+            dellScreenPoint,
+            screenPoint,
+        } = this.props;
 
         return (
             <div className={'MainField'}>
@@ -200,9 +206,13 @@ class MainFieldClass extends React.Component<Props, State> {
                     ))}
                 </div>
                 <div>
-                    <button onClick={() => addPoint()}>{'Add point'}</button>
-                    <button onClick={() => dellPoint()}>{'Dell point'}</button>
-                    <button onClick={() => dropPoints()}>{'Drop points'}</button>
+                    <button onClick={() => addPolygonPoint()}>{'Add point'}</button>
+                    <button onClick={() => dellPolygonPoint()}>{'Dell point'}</button>
+                    <button onClick={() => dropPolygonPoints()}>{'Drop points'}</button>
+                    <br />
+                    <button onClick={() => addScreenPoint()}>{'Add screen point'}</button>
+                    <button onClick={() => dellScreenPoint()}>{'Dell screen point'}</button>
+                    <button onClick={() => dropScreenPoints()}>{'Drop screen points'}</button>
                 </div>
             </div>
         );
