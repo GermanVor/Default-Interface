@@ -16,7 +16,7 @@ const getInitialPolygonPoints = (): Array<PolygonPoint> =>
         {x: 150, y: 250},
     ].map((point) => ({...point}));
 
-const initialState: StateType = {
+export const initialState: StateType = {
     polygonPoints: getInitialPolygonPoints(),
 };
 

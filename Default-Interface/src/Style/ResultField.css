@@ -1,0 +1,24 @@
+.ResultField {
+    position: relative;
+    box-sizing: border-box;
+}
+
+.ScreenCanvas {
+    position: absolute;
+    box-sizing: border-box;
+}
+
+.BackgroundCanvas {
+    position: absolute;
+    box-sizing: border-box;
+    border: solid 1px black;
+}
+
+.ResultField .Wrapper {
+    position: relative;
+    box-sizing: border-box;
+}
+
+.ResultField .MainCanvas {
+    position: absolute;
+}

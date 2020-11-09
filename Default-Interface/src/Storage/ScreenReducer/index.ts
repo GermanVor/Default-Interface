@@ -17,7 +17,7 @@ const getInitialScreenPoints = (): Array<ScreenPoint> =>
         {x: 100, y: 350},
     ].map((point) => ({...point}));
 
-const initialState: StateType = {
+export const initialState: StateType = {
     screenPoint: getInitialScreenPoints(),
 };
 

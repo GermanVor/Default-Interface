@@ -1,3 +1,4 @@
+import {createNamedExports} from 'typescript';
 import {PolygonPoint, ScreenPoint} from '../Interfaces/PolygonPointsInterface';
 
 // https://www.geeksforgeeks.org/weiler-atherton-polygon-clipping-algorithm/
@@ -53,7 +54,7 @@ const isLinesIntersected = (line_1: line, line_2: line): ScreenPoint | false => 
 };
 
 // находится ли точка внутри многоугольника или нет
-export function inPoly(screenPoints: Array<ScreenPoint>, point: ScreenPoint) {
+function inPoly(screenPoints: Array<ScreenPoint>, point: ScreenPoint) {
     let j = screenPoints.length - 1;
     let c = false;
     for (let i = 0; i < screenPoints.length; i++) {
@@ -95,35 +96,84 @@ const getNearPoint = (point_1: ScreenPoint, point_2: ScreenPoint, point: ScreenP
     }
 };
 
-export const StartWeilerAthertonAlgoritm = (polygonPoints: Array<PolygonPoint>, screenPoints: Array<ScreenPoint>) => {
-    const inPolyPoint = inPoly.bind(null, screenPoints);
-    // нужно добавить проверку, возможно все вершины входят в окно
+export type AlgoritmResult = Array<Array<ScreenPoint>>;
 
-    const clippingPoligon: Array<ScreenPoint> = [];
-    const clippedPolygon: Array<ScreenPoint> = [];
+export const StartWeilerAthertonAlgoritm = (
+    polygonPoints: Array<PolygonPoint>,
+    screenPoints: Array<ScreenPoint>,
+): AlgoritmResult => {
+    console.clear();
 
-    // хранит в себе индесы "вхождений" из массива clippedPolygon
-    // "часть алгоритма"
-    const enteringPointsIndexMap: Array<number> = [];
+    const pointType = <const>{
+        entering: 'ENTERING',
+        leaving: 'LEAVING',
+        none: 'NONE',
+    };
 
-    // хранит в себе индексы "уходов" из массивов clippedPolygon
-    // "часть алгоритма"
-    //
-    // по хорошему должен хранить ссылку на нужный элемент из clippingPoligon,
-    // но пока не придумал как идентифицировать точки, кроме как по координатам, поэтому придется искать по ним в массиве,
-    // если будет работать плавно, то так и оставлю
-    const leavingPointsIndexMap: Array<number> = [];
+    type mapDataType = {
+        point: ScreenPoint;
+        type: typeof pointType.entering | typeof pointType.leaving | typeof pointType.none;
+    };
+
+    const result: AlgoritmResult = [];
+
+    // быстрые проверки на полное вхождение одного в другое
+
+    const arr = [polygonPoints, screenPoints];
+
+    let mainFlag = true;
+    arr.forEach((points, i) => {
+        if (mainFlag) {
+            let flag = true;
+
+            points.forEach((point) => {
+                if (!inPoly(arr[(i + 1) % 2], point)) {
+                    flag = false;
+                }
+            });
+
+            if (flag) {
+                result.push(points);
+                mainFlag = false;
+            }
+        }
+    });
+
+    if (!mainFlag) return result;
+    // let flag = true;
+    // polygonPoints.forEach( point => {
+    //     if (!inPoly(screenPoints, point)) {
+    //         flag = false;
+    //     }
+    // });
+
+    // if (flag) return [polygonPoints];
+    // flag = true;
+    // screenPoints.forEach( point => {
+    //     if (!inPoly(polygonPoints, point)) {
+    //         flag = false;
+    //     }
+    // });
+
+    // if (flag) return [screenPoints];
+
+    const clippedPolygon: Map<string, mapDataType> = new Map();
+    const clippingPoligon: Map<string, mapDataType> = new Map();
+
+    const setKey = (point: ScreenPoint) => `${point.x}|${point.y}`;
 
     // мутирующая функция !
     const BuildLists = () => {
-        // нужно утрамбовать это в функцию и вызвать ее дважды
+        // нужно утрамбовать это все в одну функцию и вызвать ее дважды !
+        let inPolyPoint = inPoly.bind(null, screenPoints);
+
         [...polygonPoints, polygonPoints[0]].reduce((pPointA, pPointB) => {
             const polygonLine: line = {
                 point_1: pPointA,
                 point_2: pPointB,
             };
 
-            clippedPolygon.push(pPointA);
+            const buff: Array<mapDataType> = [];
 
             [...screenPoints, screenPoints[0]].reduce((sPointA, sPointB) => {
                 const screenLine: line = {
@@ -134,21 +184,47 @@ export const StartWeilerAthertonAlgoritm = (polygonPoints: Array<PolygonPoint>, 
                 const point = isLinesIntersected(polygonLine, screenLine);
 
                 if (point != false) {
-                    const ind = clippedPolygon.push(point) - 1;
-                    // определяем это точка "вхождения" или "ухода"
+                    // определяем это точка "вхождения" или "ухода" относительно screenPoints
 
                     if (!inPolyPoint(getNearPoint(pPointA, pPointB, point))) {
-                        enteringPointsIndexMap.push(ind);
+                        buff.push({point, type: pointType.entering});
                     } else {
-                        leavingPointsIndexMap.push(ind);
+                        buff.push({point, type: pointType.leaving});
                     }
                 }
 
                 return sPointB;
             });
 
+            buff.sort((pointA, pointB) => {
+                const x_0 = pPointA.x;
+                const y_0 = pPointA.y;
+
+                const x_1 = pointA.point.x;
+                const y_1 = pointA.point.y;
+
+                const x_2 = pointB.point.x;
+                const y_2 = pointB.point.y;
+
+                const hypotenuse_1 = Math.sqrt(Math.pow(x_0 - x_1, 2) + Math.pow(y_0 - y_1, 2));
+                const hypotenuse_2 = Math.sqrt(Math.pow(x_0 - x_2, 2) + Math.pow(y_0 - y_2, 2));
+
+                return hypotenuse_1 - hypotenuse_2;
+            });
+
+            clippedPolygon.set(setKey(pPointA), {
+                point: pPointA,
+                type: pointType.none,
+            });
+
+            buff.forEach((mapData) => {
+                clippedPolygon.set(setKey(mapData.point), mapData);
+            });
+
             return pPointB;
         });
+
+        inPolyPoint = inPoly.bind(null, polygonPoints);
 
         [...screenPoints, screenPoints[0]].reduce((sPointA, sPointB) => {
             const screenLine: line = {
@@ -156,7 +232,7 @@ export const StartWeilerAthertonAlgoritm = (polygonPoints: Array<PolygonPoint>, 
                 point_2: sPointB,
             };
 
-            clippingPoligon.push(sPointA);
+            const buff: Array<mapDataType> = [];
 
             [...polygonPoints, polygonPoints[0]].reduce((pPointA, pPointB) => {
                 const polygonLine: line = {
@@ -167,10 +243,41 @@ export const StartWeilerAthertonAlgoritm = (polygonPoints: Array<PolygonPoint>, 
                 const point = isLinesIntersected(polygonLine, screenLine);
 
                 if (point !== false) {
-                    clippingPoligon.push(point);
+                    // определяем это точка "вхождения" или "ухода" относительно screenPoints
+
+                    if (!inPolyPoint(getNearPoint(sPointA, sPointB, point))) {
+                        buff.push({point, type: pointType.entering});
+                    } else {
+                        buff.push({point, type: pointType.leaving});
+                    }
                 }
 
                 return pPointB;
+            });
+
+            buff.sort((pointA, pointB) => {
+                const x_0 = sPointA.x;
+                const y_0 = sPointA.y;
+
+                const x_1 = pointA.point.x;
+                const y_1 = pointA.point.y;
+
+                const x_2 = pointB.point.x;
+                const y_2 = pointB.point.y;
+
+                const hypotenuse_1 = Math.sqrt(Math.pow(x_0 - x_1, 2) + Math.pow(y_0 - y_1, 2));
+                const hypotenuse_2 = Math.sqrt(Math.pow(x_0 - x_2, 2) + Math.pow(y_0 - y_2, 2));
+
+                return hypotenuse_1 - hypotenuse_2;
+            });
+
+            clippingPoligon.set(setKey(sPointA), {
+                point: sPointA,
+                type: pointType.none,
+            });
+
+            buff.forEach((mapData) => {
+                clippingPoligon.set(setKey(mapData.point), mapData);
             });
 
             return sPointB;
@@ -178,4 +285,52 @@ export const StartWeilerAthertonAlgoritm = (polygonPoints: Array<PolygonPoint>, 
     };
 
     BuildLists();
+    // console.log([...clippedPolygon], clippingPoligon.keys()  );
+
+    // возвращает кусок map от ["ENTERING", "LEAVING"]
+    const getPolygon = (startKey: string, map: Map<string, mapDataType>): Array<ScreenPoint> => {
+        const arr: Array<ScreenPoint> = [];
+
+        const buff = [...map];
+
+        for (let i = buff.findIndex(([key]) => key === startKey); ; ) {
+            const {type, point} = buff[i][1];
+
+            arr.push(point);
+            if (type === pointType.leaving) {
+                return arr;
+            } else {
+                i = (i + 1) % buff.length;
+            }
+        }
+    };
+
+    [...clippedPolygon].forEach(([key, {point, type}]) => {
+        if (type === pointType.entering) {
+            const res: Array<ScreenPoint> = getPolygon(key, clippedPolygon);
+
+            let toggleFlag = 1;
+            while (setKey(res[res.length - 1]) !== key) {
+                const newKey = setKey(res.pop()!);
+
+                if (toggleFlag % 2) {
+                    res.push(...getPolygon(newKey, clippingPoligon));
+                } else {
+                    res.push(...getPolygon(newKey, clippedPolygon));
+                }
+
+                toggleFlag++;
+                if (toggleFlag === 100) {
+                    console.log(clippedPolygon, clippingPoligon);
+                    return;
+                }
+            }
+
+            res.pop();
+
+            result.push(res);
+        }
+    });
+
+    return result;
 };

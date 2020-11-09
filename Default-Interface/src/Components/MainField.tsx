@@ -12,8 +12,9 @@ import {
     dropScreenPoints,
     dellScreenPoint,
 } from '../Storage/ScreenReducer/Action/ScreenReducerAction';
+import {setState as setResultState} from '../Storage/ResultReducer/Action/ResultReducerAction';
 
-import {StartWeilerAthertonAlgoritm, inPoly} from '../Functions/Algoritm';
+import {StartWeilerAthertonAlgoritm} from '../Functions/Algoritm';
 
 import {ScreenPoint} from '../Interfaces/PolygonPointsInterface';
 import {RootState} from '../Storage';
@@ -38,6 +39,7 @@ const mapDispatch = {
     addScreenPoint,
     dropScreenPoints,
     dellScreenPoint,
+    setResultState,
 };
 
 const connector = connect(mapState, mapDispatch);
@@ -58,26 +60,13 @@ class MainFieldClass extends React.Component<Props, State> {
     }
 
     componentDidUpdate(prevProps: Props) {
-        const {polygonPoints, screenPoint} = this.props;
+        const {polygonPoints, screenPoint, setResultState} = this.props;
 
         if (polygonPoints !== prevProps.polygonPoints) {
             const context = this.mainCanRef.current!.getContext('2d');
             context!.clearRect(0, 0, canvasStyle.width, canvasStyle.height);
 
             this.drawlines(context!, [...polygonPoints, polygonPoints[0]]);
-
-            const inPolyPoint = inPoly.bind(null, screenPoint);
-
-            // console.log('-------------------------------');
-            // polygonPoints.forEach( (point, ind) => {
-            //     if (inPolyPoint(point)) {
-            //         console.log(`Точка ${String.fromCharCode(65 + ind)} принадлежит экрану`);
-            //     }
-            // })
-            // console.log('-------------------------------');
-
-            console.clear();
-            StartWeilerAthertonAlgoritm(polygonPoints, screenPoint);
         }
 
         if (screenPoint !== prevProps.screenPoint) {
@@ -86,6 +75,10 @@ class MainFieldClass extends React.Component<Props, State> {
             context!.setLineDash([]);
 
             this.drawScreen();
+        }
+
+        if (polygonPoints !== prevProps.polygonPoints || screenPoint !== prevProps.screenPoint) {
+            setResultState(polygonPoints, screenPoint);
         }
     }
 
