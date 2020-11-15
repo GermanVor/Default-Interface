@@ -1,6 +1,6 @@
 import React from 'react';
 import {connect, ConnectedProps} from 'react-redux';
-import {BezierPointComponent} from '../Components/BezierPoint';
+import {BezierPointComponent} from './BezierPoint';
 import {Point} from '../Interfaces/BezierActionsInterface';
 import {RootState} from '../Storage';
 import {getBezierLinesPoints} from '../CommonFunctions/BezierFunctions';
@@ -33,7 +33,7 @@ type State = {
 
 type Props = PropsFromRedux & {};
 
-class Y_ProjectionClass extends React.Component<Props, State> {
+class YProjectionClass extends React.Component<Props, State> {
   private backgroundCanRef: React.RefObject<HTMLCanvasElement> = React.createRef();
   private mainCanRef: React.RefObject<HTMLCanvasElement> = React.createRef();
   private divFieldRef: React.RefObject<HTMLDivElement> = React.createRef();
@@ -247,4 +247,4 @@ class Y_ProjectionClass extends React.Component<Props, State> {
   }
 }
 
-export const Y_Projection = connector(Y_ProjectionClass);
+export const YProjection = connector(YProjectionClass);

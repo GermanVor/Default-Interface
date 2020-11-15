@@ -7,6 +7,13 @@ import {PointersTypesInterface} from '../Interfaces/CommonInterface';
 
 import '../Style/BezierPoint.css';
 
+type ownProps = {
+  parentRef: React.RefObject<HTMLDivElement>;
+  ind_1: number;
+  ind_2: number;
+  axisType: PointersTypesInterface;
+};
+
 const mapState = (state: RootState, ownProps: ownProps) => {
   const {ind_1, ind_2, axisType} = ownProps;
   return {
@@ -26,13 +33,6 @@ const connector = connect(mapState, mapDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
 type State = {};
-
-type ownProps = {
-  parentRef: React.RefObject<HTMLDivElement>;
-  ind_1: number;
-  ind_2: number;
-  axisType: PointersTypesInterface;
-};
 
 type Props = PropsFromRedux & ownProps;
 

@@ -22,7 +22,7 @@ const baseLine = [
   {x: 20, y: 100, z: 20},
 ];
 
-const delta = 65;
+const delta = 95;
 const pointsArray: PointsArray = [[], [], [], []];
 
 pointsArray.forEach((points, i) => {

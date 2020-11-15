@@ -5,8 +5,6 @@ import {addPoint, dellPoint} from './Storage/Actions/BezierActions';
 import {Point} from './Interfaces/BezierActionsInterface';
 import {RootState} from './Storage';
 import './Style/Bezier.css';
-import {D3_Canvas} from './Components/D3_View';
-import {Y_Projection} from './Components/Y_Projection';
 import {PointersTypes} from './Interfaces/CommonInterface';
 
 const WIDTH = 430;
