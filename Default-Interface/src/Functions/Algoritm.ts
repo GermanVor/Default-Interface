@@ -140,22 +140,6 @@ export const StartWeilerAthertonAlgoritm = (
     });
 
     if (!mainFlag) return result;
-    // let flag = true;
-    // polygonPoints.forEach( point => {
-    //     if (!inPoly(screenPoints, point)) {
-    //         flag = false;
-    //     }
-    // });
-
-    // if (flag) return [polygonPoints];
-    // flag = true;
-    // screenPoints.forEach( point => {
-    //     if (!inPoly(polygonPoints, point)) {
-    //         flag = false;
-    //     }
-    // });
-
-    // if (flag) return [screenPoints];
 
     const clippedPolygon: Map<string, mapDataType> = new Map();
     const clippingPoligon: Map<string, mapDataType> = new Map();
@@ -321,7 +305,7 @@ export const StartWeilerAthertonAlgoritm = (
 
                 toggleFlag++;
                 if (toggleFlag === 100) {
-                    console.log(clippedPolygon, clippingPoligon);
+                    // явная ошибка
                     return;
                 }
             }
