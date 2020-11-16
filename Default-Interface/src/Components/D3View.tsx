@@ -4,7 +4,8 @@ import {Point, SimplePoint} from '../Interfaces/BezierActionsInterface';
 import {RootState} from '../Storage';
 import {getBezierLinesPoints} from '../CommonFunctions/BezierFunctions';
 import '../Style/D3_Canvas.css';
-import {selectedAxis} from '../Interfaces/D3Interface';
+
+import {getBezierGrid} from '../CommonFunctions/BezierFunctions';
 
 const HEIGHT = 640;
 const WIDTH = 640;
@@ -12,6 +13,8 @@ const WIDTH = 640;
 const YX_ANGLE = 120;
 const YZ_ANGLE = 120;
 const OFFSET = 10;
+
+const variation = [4, 12, 20]
 
 // Y
 //    x
@@ -114,7 +117,6 @@ type PropsFromRedux = ConnectedProps<typeof connector>;
 
 type State = {
   numberOfLines: number;
-  axis: typeof selectedAxis.x | typeof selectedAxis.z | typeof selectedAxis.xz
 };
 
 type ownProps = {};
@@ -150,8 +152,7 @@ class CanvasClass extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      numberOfLines: 10,
-      axis: selectedAxis.xz
+      numberOfLines: variation[0]
     };
     this.canvasRef = React.createRef();
     this.backgroundCanRef = React.createRef();
@@ -172,131 +173,53 @@ class CanvasClass extends Component<Props, State> {
     context.setLineDash([0]);
     context.lineDashOffset = 0;
 
-    const lineX_1 = getBezierLinesPoints(points[0]);
-    lineX_1.map(converter).reduce((pointA, pointB) => {
+    getBezierLinesPoints(points[0]).map(converter).reduce((pointA, pointB) => {
       context.moveTo(pointA.x, pointA.y);
       context.lineTo(pointB.x, pointB.y);
 
       return pointB;
     });
 
-    const lineX_2 = getBezierLinesPoints(points[lastInd]);
-    lineX_2.map(converter).reduce((pointA, pointB) => {
+    getBezierLinesPoints(points[lastInd]).map(converter).reduce((pointA, pointB) => {
       context.moveTo(pointA.x, pointA.y);
       context.lineTo(pointB.x, pointB.y);
 
       return pointB;
     });
 
-    const lineZ_1 = getBezierLinesPoints(points.map((p) => p[0]));
-    lineZ_1.map(converter).reduce((pointA, pointB) => {
+    getBezierLinesPoints(points.map((p) => p[0])).map(converter).reduce((pointA, pointB) => {
       context.moveTo(pointA.x, pointA.y);
       context.lineTo(pointB.x, pointB.y);
 
       return pointB;
     });
 
-    const lineZ_2 = getBezierLinesPoints(points.map((p) => p[lastInd]));
-    lineZ_2.map(converter).reduce((pointA, pointB) => {
+    getBezierLinesPoints(points.map((p) => p[lastInd])).map(converter).reduce((pointA, pointB) => {
       context.moveTo(pointA.x, pointA.y);
       context.lineTo(pointB.x, pointB.y);
 
       return pointB;
     });
 
-    const getPoint_x = (point_1: Point, point_2: Point, x: number): Point => {
-      const buff = (x - point_1.x) / (point_2.x - point_1.x);
-      return {
-        x,
-        y: buff * (point_2.y - point_1.y) + point_1.y || point_1.y,
-        z: buff * (point_2.z - point_1.z) + point_1.z || point_1.z,
-      };
-    };
+    const a = getBezierGrid(points, numberOfLines, numberOfLines);
 
-    // // вдоль оси Z
-    const middleP_1_lenght_z = points[1][lastInd].x - points[1][0].x;
-    const middleP_2_lenght_z = points[2][lastInd].x - points[2][0].x; 
-    // // рисуем сетку вдоль оси Z
+    a.map(arr => arr.map(converter).reduce( (pointA, pointB) => {
+        context.moveTo(pointA.x, pointA.y);
+        context.lineTo(pointB.x, pointB.y);
+  
+        return pointB;
+    }));
 
-    const {axis} = this.state;
-    if (axis === selectedAxis.xz || axis === selectedAxis.z) {
-      for (let i = 1; i < numberOfLines; i++) {
-        const ind = Math.floor((i * lineX_1.length) / numberOfLines);
-  
-        const X_1 = points[1][0].x + (middleP_1_lenght_z / numberOfLines) * i;
-        const middlePoint_1 = getPoint_x(
-          [...points[1]].reverse().find(({x}) => x <= X_1)!,
-          points[1].find(({x}) => x >= X_1) || points[1][lastInd],
-          X_1,
-        );
-  
-        const X_2 = points[2][0].x + (middleP_2_lenght_z / numberOfLines) * i;
-        const middlePoint_2 = getPoint_x(
-          [...points[2]].reverse().find(({x}) => x <= X_2) || points[0][lastInd],
-          points[2].find(({x}) => x >= X_2) || points[2][lastInd],
-          X_2,
-        );
-  
-        const bLine = getBezierLinesPoints([lineX_1[ind], middlePoint_1, middlePoint_2, lineX_2[ind]]);
-  
-        bLine.map(converter).reduce((pointA, pointB) => {
-          context.moveTo(pointA.x, pointA.y);
-          context.lineTo(pointB.x, pointB.y);
-  
-          return pointB;
-        });
-      }
-    }
-    
-    const getPoint_z = (point_1: Point, point_2: Point, z: number): Point => {
-      const buff = (z - point_1.z) / (point_2.z - point_1.z);
+    a.reduce( (arrA, arrB) => {
+      arrA.map(converter).forEach( (pointA, ind) => {
+        const pointB = converter(arrB[ind]);
 
-      return {
-        x: buff * (point_2.x - point_1.x) + point_1.x || point_1.x,
-        y: buff * (point_2.y - point_1.y) + point_1.y || point_1.y,
-        z,
-      };
-    };
+        context.moveTo(pointA.x, pointA.y);
+        context.lineTo(pointB.x, pointB.y);
+      });
 
-    // вдоль оси X
-    const middleP_1_lenght_x = points[lastInd][1].z - points[0][1].z;
-    const middleP_2_lenght_x = points[lastInd][2].z - points[0][2].z;
-
-    // // рисуем сетку вдоль оси X
-    if (axis === selectedAxis.xz || axis === selectedAxis.x) {
-      for (let i = 1; i < numberOfLines; i++) {
-        const ind = Math.floor((i * lineZ_1.length) / numberOfLines);
-  
-        const Z_1 = points[0][1].z + (middleP_1_lenght_x / numberOfLines) * i;
-        const middlePoint_1 = getPoint_z(
-          points
-            .map((arr) => arr[1])
-            .reverse()
-            .find((a) => a!.z <= Z_1) || points[0][1],
-          points.map((arr) => arr[1]).find((a) => a!.z >= Z_1) || points[lastInd][1],
-          Z_1,
-        );
-  
-        const Z_2 = points[0][2].z + (middleP_2_lenght_x / numberOfLines) * i;
-        const middlePoint_2 = getPoint_z(
-          points
-            .map((arr) => arr[2])
-            .reverse()
-            .find((a) => a!.z <= Z_2) || points[0][2],
-          points.map((arr) => arr[2]).find((a) => a!.z >= Z_2) || points[lastInd][2],
-          Z_2,
-        );
-  
-        const bLine = getBezierLinesPoints([lineZ_1[ind], middlePoint_1, middlePoint_2, lineZ_2[ind]]);
-  
-        bLine.map(converter).reduce((pointA, pointB) => {
-          context.moveTo(pointA.x, pointA.y);
-          context.lineTo(pointB.x, pointB.y);
-  
-          return pointB;
-        });
-      }
-    }
+      return arrB;
+    });
 
     context.stroke();
   };
@@ -312,13 +235,12 @@ class CanvasClass extends Component<Props, State> {
   }
 
   componentDidUpdate = (prevProps: Props, prevState: State) => {
-    const {numberOfLines, axis} = this.state;
+    const {numberOfLines} = this.state;
     const {points} = this.props;
     
     if (
       points !== prevProps.points || 
-      numberOfLines !== prevState.numberOfLines ||
-      axis !== prevState.axis  
+      numberOfLines !== prevState.numberOfLines
     ) {
       const context = this.canvasRef.current!.getContext('2d');
       context!.clearRect(0, 0, WIDTH, HEIGHT);
@@ -340,15 +262,9 @@ class CanvasClass extends Component<Props, State> {
           <canvas className={'BackgroundCanvas'} width={WIDTH} height={HEIGHT} ref={this.backgroundCanRef} />
           <canvas className={'BackgroundCanvas'} width={WIDTH} height={HEIGHT} ref={this.canvasRef} />
         </div>
-        <button onClick={() => this.setState({numberOfLines: 10})}>10</button>
-        <button onClick={() => this.setState({numberOfLines: 60})}>60</button>
-        <button onClick={() => this.setState({numberOfLines: 90})}>90</button>
-        <button onClick={() => this.setState({numberOfLines: 120})}>120</button>
-        <br/>
-        <button onClick={() => this.setState({axis: selectedAxis.x})} >{'x'}</button>
-        <button onClick={() => this.setState({axis: selectedAxis.z})} >{'z'}</button>
-        <br/>
-        <button onClick={() => this.setState({axis: selectedAxis.xz})} >{'xz'}</button>
+        {variation.map( el => {
+          return <button key={`D3_Canvas-${el}`} onClick={() => this.setState({numberOfLines: el})}>{`${el}`}</button>
+        })}
       </div>
     );
   }
