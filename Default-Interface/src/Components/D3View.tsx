@@ -14,7 +14,7 @@ const YX_ANGLE = 120;
 const YZ_ANGLE = 120;
 const OFFSET = 10;
 
-const variation = [4, 12, 20]
+const variation = [4, 12, 20, 50, 100, 150];
 
 // Y
 //    x
@@ -152,7 +152,7 @@ class CanvasClass extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
-      numberOfLines: variation[0]
+      numberOfLines: variation[0],
     };
     this.canvasRef = React.createRef();
     this.backgroundCanRef = React.createRef();
@@ -173,45 +173,55 @@ class CanvasClass extends Component<Props, State> {
     context.setLineDash([0]);
     context.lineDashOffset = 0;
 
-    getBezierLinesPoints(points[0]).map(converter).reduce((pointA, pointB) => {
-      context.moveTo(pointA.x, pointA.y);
-      context.lineTo(pointB.x, pointB.y);
+    getBezierLinesPoints(points[0])
+      .map(converter)
+      .reduce((pointA, pointB) => {
+        context.moveTo(pointA.x, pointA.y);
+        context.lineTo(pointB.x, pointB.y);
 
-      return pointB;
-    });
+        return pointB;
+      });
 
-    getBezierLinesPoints(points[lastInd]).map(converter).reduce((pointA, pointB) => {
-      context.moveTo(pointA.x, pointA.y);
-      context.lineTo(pointB.x, pointB.y);
+    getBezierLinesPoints(points[lastInd])
+      .map(converter)
+      .reduce((pointA, pointB) => {
+        context.moveTo(pointA.x, pointA.y);
+        context.lineTo(pointB.x, pointB.y);
 
-      return pointB;
-    });
+        return pointB;
+      });
 
-    getBezierLinesPoints(points.map((p) => p[0])).map(converter).reduce((pointA, pointB) => {
-      context.moveTo(pointA.x, pointA.y);
-      context.lineTo(pointB.x, pointB.y);
+    getBezierLinesPoints(points.map((p) => p[0]))
+      .map(converter)
+      .reduce((pointA, pointB) => {
+        context.moveTo(pointA.x, pointA.y);
+        context.lineTo(pointB.x, pointB.y);
 
-      return pointB;
-    });
+        return pointB;
+      });
 
-    getBezierLinesPoints(points.map((p) => p[lastInd])).map(converter).reduce((pointA, pointB) => {
-      context.moveTo(pointA.x, pointA.y);
-      context.lineTo(pointB.x, pointB.y);
+    getBezierLinesPoints(points.map((p) => p[lastInd]))
+      .map(converter)
+      .reduce((pointA, pointB) => {
+        context.moveTo(pointA.x, pointA.y);
+        context.lineTo(pointB.x, pointB.y);
 
-      return pointB;
-    });
+        return pointB;
+      });
 
     const a = getBezierGrid(points, numberOfLines, numberOfLines);
 
-    a.map(arr => arr.map(converter).reduce( (pointA, pointB) => {
+    a.map((arr) =>
+      arr.map(converter).reduce((pointA, pointB) => {
         context.moveTo(pointA.x, pointA.y);
         context.lineTo(pointB.x, pointB.y);
-  
-        return pointB;
-    }));
 
-    a.reduce( (arrA, arrB) => {
-      arrA.map(converter).forEach( (pointA, ind) => {
+        return pointB;
+      }),
+    );
+
+    a.reduce((arrA, arrB) => {
+      arrA.map(converter).forEach((pointA, ind) => {
         const pointB = converter(arrB[ind]);
 
         context.moveTo(pointA.x, pointA.y);
@@ -237,11 +247,8 @@ class CanvasClass extends Component<Props, State> {
   componentDidUpdate = (prevProps: Props, prevState: State) => {
     const {numberOfLines} = this.state;
     const {points} = this.props;
-    
-    if (
-      points !== prevProps.points || 
-      numberOfLines !== prevState.numberOfLines
-    ) {
+
+    if (points !== prevProps.points || numberOfLines !== prevState.numberOfLines) {
       const context = this.canvasRef.current!.getContext('2d');
       context!.clearRect(0, 0, WIDTH, HEIGHT);
 
@@ -262,8 +269,8 @@ class CanvasClass extends Component<Props, State> {
           <canvas className={'BackgroundCanvas'} width={WIDTH} height={HEIGHT} ref={this.backgroundCanRef} />
           <canvas className={'BackgroundCanvas'} width={WIDTH} height={HEIGHT} ref={this.canvasRef} />
         </div>
-        {variation.map( el => {
-          return <button key={`D3_Canvas-${el}`} onClick={() => this.setState({numberOfLines: el})}>{`${el}`}</button>
+        {variation.map((el) => {
+          return <button key={`D3_Canvas-${el}`} onClick={() => this.setState({numberOfLines: el})}>{`${el}`}</button>;
         })}
       </div>
     );

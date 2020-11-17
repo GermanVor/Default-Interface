@@ -1,5 +1,5 @@
 export const selectedAxis = <const>{
-    x: "X",
-    z: "z",
-    xz: "xz"
-  }
+  x: 'X',
+  z: 'z',
+  xz: 'xz',
+};
