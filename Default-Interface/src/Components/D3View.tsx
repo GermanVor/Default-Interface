@@ -2,10 +2,10 @@ import React, {Component} from 'react';
 import {connect, ConnectedProps} from 'react-redux';
 import {Point, SimplePoint} from '../Interfaces/BezierActionsInterface';
 import {RootState} from '../Storage';
-import {getBezierLinesPoints} from '../CommonFunctions/BezierFunctions';
-import '../Style/D3_Canvas.css';
-
+import {variation} from '../Storage/BezierStorage';
+import {setStep} from '../Storage/Actions/BezierActions';
 import {getBezierGrid} from '../CommonFunctions/BezierFunctions';
+import '../Style/D3_Canvas.css';
 
 const HEIGHT = 640;
 const WIDTH = 640;
@@ -13,8 +13,6 @@ const WIDTH = 640;
 const YX_ANGLE = 120;
 const YZ_ANGLE = 120;
 const OFFSET = 10;
-
-const variation = [4, 12, 20, 50, 100, 150];
 
 // Y
 //    x
@@ -107,17 +105,18 @@ const DrawAxes = (context: CanvasRenderingContext2D) => {
 const mapState = (state: RootState) => {
   return {
     points: state.BezierReducer.points,
+    step: state.BezierReducer.step,
   };
 };
 
-const mapDispatch = {};
+const mapDispatch = {
+  setStep,
+};
 
 const connector = connect(mapState, mapDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
-type State = {
-  numberOfLines: number;
-};
+type State = {};
 
 type ownProps = {};
 
@@ -151,17 +150,14 @@ class CanvasClass extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props);
-    this.state = {
-      numberOfLines: variation[0],
-    };
+
     this.canvasRef = React.createRef();
     this.backgroundCanRef = React.createRef();
   }
 
   drawBezierGrid = () => {
     const context = this.canvasRef.current!.getContext('2d');
-    const {points} = this.props;
-    const {numberOfLines} = this.state;
+    const {points, step} = this.props;
 
     if (!context) return;
 
@@ -173,43 +169,7 @@ class CanvasClass extends Component<Props, State> {
     context.setLineDash([0]);
     context.lineDashOffset = 0;
 
-    getBezierLinesPoints(points[0])
-      .map(converter)
-      .reduce((pointA, pointB) => {
-        context.moveTo(pointA.x, pointA.y);
-        context.lineTo(pointB.x, pointB.y);
-
-        return pointB;
-      });
-
-    getBezierLinesPoints(points[lastInd])
-      .map(converter)
-      .reduce((pointA, pointB) => {
-        context.moveTo(pointA.x, pointA.y);
-        context.lineTo(pointB.x, pointB.y);
-
-        return pointB;
-      });
-
-    getBezierLinesPoints(points.map((p) => p[0]))
-      .map(converter)
-      .reduce((pointA, pointB) => {
-        context.moveTo(pointA.x, pointA.y);
-        context.lineTo(pointB.x, pointB.y);
-
-        return pointB;
-      });
-
-    getBezierLinesPoints(points.map((p) => p[lastInd]))
-      .map(converter)
-      .reduce((pointA, pointB) => {
-        context.moveTo(pointA.x, pointA.y);
-        context.lineTo(pointB.x, pointB.y);
-
-        return pointB;
-      });
-
-    const a = getBezierGrid(points, numberOfLines, numberOfLines);
+    const a = getBezierGrid(points, step, step);
 
     a.map((arr) =>
       arr.map(converter).reduce((pointA, pointB) => {
@@ -245,10 +205,9 @@ class CanvasClass extends Component<Props, State> {
   }
 
   componentDidUpdate = (prevProps: Props, prevState: State) => {
-    const {numberOfLines} = this.state;
-    const {points} = this.props;
+    const {points, step} = this.props;
 
-    if (points !== prevProps.points || numberOfLines !== prevState.numberOfLines) {
+    if (points !== prevProps.points || step !== prevProps.step) {
       const context = this.canvasRef.current!.getContext('2d');
       context!.clearRect(0, 0, WIDTH, HEIGHT);
 
@@ -258,6 +217,8 @@ class CanvasClass extends Component<Props, State> {
   };
 
   render() {
+    const {setStep} = this.props;
+
     return (
       <div className="D3_Canvas">
         <div
@@ -270,7 +231,7 @@ class CanvasClass extends Component<Props, State> {
           <canvas className={'BackgroundCanvas'} width={WIDTH} height={HEIGHT} ref={this.canvasRef} />
         </div>
         {variation.map((el) => {
-          return <button key={`D3_Canvas-${el}`} onClick={() => this.setState({numberOfLines: el})}>{`${el}`}</button>;
+          return <button key={`D3_Canvas-${el}`} onClick={() => setStep(el)}>{`${el}`}</button>;
         })}
       </div>
     );

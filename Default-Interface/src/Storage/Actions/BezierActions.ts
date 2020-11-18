@@ -29,3 +29,10 @@ export const setPoint = (
     second,
   },
 });
+
+export const setStep = (step: number) => ({
+  type: Action.SET_STEP,
+  body: {
+    step,
+  },
+});

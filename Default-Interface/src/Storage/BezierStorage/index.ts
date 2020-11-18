@@ -6,8 +6,11 @@ import {PointersTypes, PointersTypesInterface} from '../../Interfaces/CommonInte
 type InferValueTypes<T> = T extends {[key: string]: infer U} ? U : never;
 type ActionsType = ReturnType<InferValueTypes<typeof actions>>;
 
+export const variation = [4, 12, 20, 50, 100, 150];
+
 export type StateType = {
   points: PointsArray;
+  step: number;
 };
 
 // Y
@@ -37,6 +40,7 @@ pointsArray.forEach((points, i) => {
 
 const initialState: StateType = {
   points: [...pointsArray],
+  step: variation[0],
 };
 
 export function BezierReducer(state: StateType = initialState, action: ActionsType): StateType {
@@ -78,6 +82,9 @@ export function BezierReducer(state: StateType = initialState, action: ActionsTy
       } else {
         return state;
       }
+    }
+    case Action.SET_STEP: {
+      return {...state, step: action.body.step};
     }
     default: {
       return state;

@@ -3,7 +3,7 @@ import {connect, ConnectedProps} from 'react-redux';
 import {BezierPointComponent} from './BezierPoint';
 import {Point} from '../Interfaces/BezierActionsInterface';
 import {RootState} from '../Storage';
-import {getBezierLinesPoints} from '../CommonFunctions/BezierFunctions';
+import {getBezierGrid} from '../CommonFunctions/BezierFunctions';
 import {PointersTypes} from '../Interfaces/CommonInterface';
 import {AxisOption} from '../Interfaces/CommonInterface';
 
@@ -14,6 +14,7 @@ const OFFSET = 10;
 
 const mapState = (state: RootState) => ({
   points: state.BezierReducer.points,
+  step: state.BezierReducer.step,
 });
 
 const mapDispatch = {};
@@ -116,7 +117,10 @@ class YProjectionClass extends React.Component<Props, State> {
   drawPointsLine = () => {
     const context = this.mainCanRef.current!.getContext('2d');
     if (context === null) return;
+
     const {ind} = this.state;
+    const {step} = this.props;
+
     context.clearRect(0, 0, WIDTH, HEIGHT);
     const points = this.getPointsArr();
 
@@ -136,9 +140,9 @@ class YProjectionClass extends React.Component<Props, State> {
       context.beginPath();
       context.strokeStyle = '#000000';
 
-      const arrayPointsToDraw = getBezierLinesPoints(points);
+      const arrayPointsToDraw = getBezierGrid([points], step, step);
 
-      arrayPointsToDraw.map(this.getCoord).reduce((pointA, pointB) => {
+      arrayPointsToDraw[0].map(this.getCoord).reduce((pointA, pointB) => {
         context.moveTo(pointA.x, pointA.y);
         context.lineTo(pointB.x, pointB.y);
 
@@ -150,10 +154,10 @@ class YProjectionClass extends React.Component<Props, State> {
   };
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    const {points} = this.props;
+    const {points, step} = this.props;
     const {axis, ind} = this.state;
 
-    if (points !== prevProps.points || axis !== prevState.axis || ind !== prevState.ind) {
+    if (step !== prevProps.step || points !== prevProps.points || axis !== prevState.axis || ind !== prevState.ind) {
       this.drawPointsLine();
     }
 

@@ -3,6 +3,7 @@ export const Action = <const>{
   CLEAR_POINTS: 'CLEAR_CANVAS_B',
   SET_POINT: 'SET_POINT_B',
   REMOVE_POINT: 'REMOVE_POINT_B',
+  SET_STEP: 'SET_STEP_B',
 };
 
 export interface Point {
