@@ -1,6 +1,6 @@
 export interface ScreenPoint {
-    x: number;
-    y: number;
+	x: number;
+	y: number;
 }
 
 // export interface PolygonPoint extends ScreenPoint {}

@@ -12,15 +12,15 @@ import './Style/index.css';
 const store = createStore(rootReducer);
 
 ReactDOM.render(
-    <Provider store={store}>
-        <React.StrictMode>
-            <div className="Fourth_lab">
-                <MainField />
-                <ResultField />
-            </div>
-        </React.StrictMode>
-    </Provider>,
-    document.getElementById('root'),
+	<Provider store={store}>
+		<React.StrictMode>
+			<div className="Fourth_lab">
+				<MainField />
+				<ResultField />
+			</div>
+		</React.StrictMode>
+	</Provider>,
+	document.getElementById('root')
 );
 
 serviceWorker.unregister();

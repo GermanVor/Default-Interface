@@ -4,9 +4,9 @@ import {ScreenReducer} from './ScreenReducer';
 import {ResultReducer} from './ResultReducer';
 
 const rootReducer = combineReducers({
-    PolygonReducer,
-    ScreenReducer,
-    ResultReducer,
+	PolygonReducer,
+	ScreenReducer,
+	ResultReducer,
 });
 
 export default rootReducer;
