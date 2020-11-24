@@ -160,9 +160,7 @@ class CanvasClass extends Component<Props, State> {
     const {points, step} = this.props;
 
     if (!context) return;
-
-    const lastInd = points[0].length - 1;
-
+    
     context.beginPath();
     context.strokeStyle = '#000000';
 

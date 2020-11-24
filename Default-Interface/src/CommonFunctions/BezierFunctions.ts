@@ -25,7 +25,7 @@ export const getBezierGrid = (
   }
 
   const N_2_arr: Array<number> = [];
-  for (let kj = 0; kj < 1 + 1 / size_x; kj += 1 / size_z) {
+  for (let kj = 0; kj < 1 + 1 / size_z; kj += 1 / size_z) {
     for (let j = 0; j < BezierBazis[0].length; j++) {
       N_2_arr.push(getBezierBasis(j, BezierBazis[0].length - 1, kj));
     }
@@ -35,7 +35,7 @@ export const getBezierGrid = (
   for (let ki = 0, ki_N1 = 0; ki < 1 + 1 / size_x; ki += 1 / size_x, ki_N1++) {
     const arr: Array<Point> = [];
 
-    for (let kj = 0, kj_N2 = 0; kj < 1 + 1 / size_x; kj += 1 / size_z, kj_N2++) {
+    for (let kj = 0, kj_N2 = 0; kj < 1 + 1 / size_z; kj += 1 / size_z, kj_N2++) {
       const k = arr.push({x: 0, y: 0, z: 0}) - 1;
 
       BezierBazis.forEach((pointsA, i) => {
