@@ -12,9 +12,8 @@ export type StateType = {
 const getInitialScreenPoints = (): Array<ScreenPoint> =>
 	[
 		{x: 100, y: 150},
-		{x: 250, y: 100},
-		{x: 300, y: 300},
-		// {x: 100, y: 350},
+		{x: 270, y: 50},
+		{x: 350, y: 243},
 	].map((point) => ({...point}));
 
 export const initialState: StateType = {
