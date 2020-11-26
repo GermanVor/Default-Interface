@@ -11,10 +11,9 @@ export type StateType = {
 
 const getInitialPolygonPoints = (): Array<PolygonPoint> =>
 	[
-		{x: 250, y: 150},
-		{x: 570, y: 150},
-		{x: 570, y: 350},
-		{x: 250, y: 350},
+		{x: 100, y: 170},
+		{x: 370, y: 190},
+		{x: 350, y: 400},
 	].map((point) => ({...point}));
 
 export const initialState: StateType = {
@@ -39,8 +38,10 @@ export function PolygonReducer(state: StateType = initialState, action: ActionsT
 			return {...state, polygonPoints: getInitialPolygonPoints()};
 		}
 		case Action.REMOVE_POINT: {
-			state.polygonPoints.pop();
-			return {...state, polygonPoints: [...state.polygonPoints]};
+			if (state.polygonPoints.length > 3) {
+				state.polygonPoints.pop();
+				return {...state, polygonPoints: [...state.polygonPoints]};
+			}
 		}
 		default: {
 			return state;

@@ -43,7 +43,10 @@ const mapDispatch = {
 const connector = connect(mapState, mapDispatch);
 type PropsFromRedux = ConnectedProps<typeof connector>;
 
-type State = {};
+type State = {
+	isUnion: boolean;
+	isСonjunction: boolean;
+};
 type Props = PropsFromRedux & {};
 
 class MainFieldClass extends React.Component<Props, State> {
@@ -54,11 +57,15 @@ class MainFieldClass extends React.Component<Props, State> {
 
 	constructor(props: Props) {
 		super(props);
-		this.state = {};
+		this.state = {
+			isUnion: false,
+			isСonjunction: false,
+		};
 	}
 
-	componentDidUpdate(prevProps: Props) {
+	componentDidUpdate(prevProps: Props, prevState: State) {
 		const {polygonPoints, screenPoint, setResultState} = this.props;
+		const {isUnion, isСonjunction} = this.state;
 
 		if (polygonPoints !== prevProps.polygonPoints) {
 			const context = this.mainCanRef.current!.getContext('2d');
@@ -75,8 +82,13 @@ class MainFieldClass extends React.Component<Props, State> {
 			this.drawScreen();
 		}
 
-		if (polygonPoints !== prevProps.polygonPoints || screenPoint !== prevProps.screenPoint) {
-			setResultState(polygonPoints, screenPoint);
+		if (
+			polygonPoints !== prevProps.polygonPoints ||
+			screenPoint !== prevProps.screenPoint ||
+			isUnion !== prevState.isUnion ||
+			isСonjunction !== prevState.isСonjunction
+		) {
+			setResultState(polygonPoints, screenPoint, isUnion, isСonjunction);
 		}
 	}
 
@@ -152,6 +164,7 @@ class MainFieldClass extends React.Component<Props, State> {
 			dellScreenPoint,
 			screenPoint,
 		} = this.props;
+		const {isUnion, isСonjunction} = this.state;
 
 		return (
 			<div className={'MainField'}>
@@ -201,6 +214,24 @@ class MainFieldClass extends React.Component<Props, State> {
 					<button onClick={() => addScreenPoint()}>{'Add screen point'}</button>
 					<button onClick={() => dellScreenPoint()}>{'Dell screen point'}</button>
 					<button onClick={() => dropScreenPoints()}>{'Drop screen points'}</button>
+					<button
+						onClick={() => {
+							this.setState({
+								isUnion: !isUnion,
+								isСonjunction: false,
+							});
+						}}>
+						{'Union'}
+					</button>
+					<button
+						onClick={() => {
+							this.setState({
+								isСonjunction: !isСonjunction,
+								isUnion: false,
+							});
+						}}>
+						{'Сonjunction'}
+					</button>
 				</div>
 			</div>
 		);

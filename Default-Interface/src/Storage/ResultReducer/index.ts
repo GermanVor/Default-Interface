@@ -13,15 +13,20 @@ export type StateType = {
 };
 
 const initialState: StateType = {
-	resultArr: StartWeilerAthertonAlgoritm(polygonInitialState.polygonPoints, ScreeninitialState.screenPoint),
+	resultArr: <AlgoritmResult>(
+		StartWeilerAthertonAlgoritm(polygonInitialState.polygonPoints, ScreeninitialState.screenPoint)
+	),
 };
 
 export function ResultReducer(state: StateType = initialState, action: ActionsType): StateType {
 	switch (action.type) {
 		case Action.SET_STATE: {
-			const {polygonPoints, screenPoints} = action.data;
+			const {polygonPoints, screenPoints, isUnion, isСonjunction} = action.data;
 
-			return {...state, resultArr: StartWeilerAthertonAlgoritm(polygonPoints, screenPoints)};
+			const resultArr = StartWeilerAthertonAlgoritm(polygonPoints, screenPoints, isUnion, isСonjunction);
+			if (resultArr !== false) {
+				return {...state, resultArr};
+			}
 		}
 		default: {
 			return state;

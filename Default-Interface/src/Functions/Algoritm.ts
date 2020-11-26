@@ -8,9 +8,6 @@ type LineType = {
 	point_2: ScreenPoint;
 };
 
-const X_OFFSET = 0.1;
-const Y_OFFSET = 0.1;
-
 // есть ли пересечение между линиями
 const isLinesIntersected = (line_1: LineType, line_2: LineType): ScreenPoint | false => {
 	let n: number;
@@ -35,7 +32,7 @@ const isLinesIntersected = (line_1: LineType, line_2: LineType): ScreenPoint | f
 
 	const res = {
 		x: +(line_2.point_1.x + (line_2.point_2.x - line_2.point_1.x) * n).toFixed(2),
-		y: +(line_2.point_1.y + (line_2.point_2.y - line_2.point_1.y) * n).toFixed(2)
+		y: +(line_2.point_1.y + (line_2.point_2.y - line_2.point_1.y) * n).toFixed(2),
 	};
 
 	// проверяем находится ли точка пересечения на самих прямых или на их продолжении
@@ -60,17 +57,14 @@ const isLinesIntersected = (line_1: LineType, line_2: LineType): ScreenPoint | f
 function inPoly(screenPoints: Array<ScreenPoint>, point: ScreenPoint) {
 	let c = false;
 
-	for (
-		let i = 0, j = screenPoints.length - 1; 
-		i < screenPoints.length; 
-		j = i++
-	) {
+	for (let i = 0, j = screenPoints.length - 1; i < screenPoints.length; j = i++) {
 		if (
 			((screenPoints[i].y <= point.y && point.y < screenPoints[j].y) ||
 				(screenPoints[j].y <= point.y && point.y < screenPoints[i].y)) &&
-			(point.x <
+			point.x <
 				((screenPoints[j].x - screenPoints[i].x) * (point.y - screenPoints[i].y)) /
-					(screenPoints[j].y - screenPoints[i].y) + screenPoints[i].x)
+					(screenPoints[j].y - screenPoints[i].y) +
+					screenPoints[i].x
 		) {
 			c = !c;
 		}
@@ -78,60 +72,43 @@ function inPoly(screenPoints: Array<ScreenPoint>, point: ScreenPoint) {
 	return c;
 }
 const InsidePolygon = (screenPoints: Array<ScreenPoint>, point: ScreenPoint) => {
-  let counter = 0;
-  let i;
-  let xinters;
-  let p1 : ScreenPoint , p2 : ScreenPoint ;
+	let counter = 0;
+	let i;
+	let xinters;
+	let p1: ScreenPoint, p2: ScreenPoint;
 
-  const MIN = (x: number,y:number) => (x < y ? x : y);
-  const MAX = (x: number,y:number) => (x > y ? x : y);
+	const MIN = (x: number, y: number) => (x < y ? x : y);
+	const MAX = (x: number, y: number) => (x > y ? x : y);
 
-  p1 = screenPoints[0];
-  for (i=1;i<=screenPoints.length ;i++) {
-    p2 = screenPoints[i % screenPoints.length];
-    if (point.y > MIN(p1.y,p2.y)) {
-      if (point.y <= MAX(p1.y,p2.y)) {
-        if (point.x <= MAX(p1.x,p2.x)) {
-          if (p1.y != p2.y) {
-            xinters = (point.y-p1.y)*(p2.x-p1.x)/(p2.y-p1.y)+p1.x;
-            if (p1.x == p2.x || point.x <= xinters)
-              counter++;
-          }
-        }
-      }
-    }
-    p1 = p2;
-  }
+	p1 = screenPoints[0];
+	for (i = 1; i <= screenPoints.length; i++) {
+		p2 = screenPoints[i % screenPoints.length];
+		if (point.y > MIN(p1.y, p2.y)) {
+			if (point.y <= MAX(p1.y, p2.y)) {
+				if (point.x <= MAX(p1.x, p2.x)) {
+					if (p1.y != p2.y) {
+						xinters = ((point.y - p1.y) * (p2.x - p1.x)) / (p2.y - p1.y) + p1.x;
+						if (p1.x == p2.x || point.x <= xinters) counter++;
+					}
+				}
+			}
+		}
+		p1 = p2;
+	}
 
-  if (counter % 2 == 0)
-    return false
-  else
-    return true;
-}
-
-console.log(inPoly([
-	{x: 100, y: 150},
-		{x: 270, y: 50},
-		{x: 350, y: 150}], {x: 200, y: 150}
-))
-
-console.log(InsidePolygon([
-	{x: 100, y: 150},
-		{x: 270, y: 50},
-		{x: 350, y: 150}], {x: 200, y: 150}
-))
-
+	if (counter % 2 == 0) return false;
+	else return true;
+};
 
 // порядок обхода важен !! от 1 к 2 !!!
 const getNearPoint = (line: LineType, point: ScreenPoint): ScreenPoint => {
-	const {
-		point_1,
-		point_2,
-	} = line;
+	const {point_1, point_2} = line;
+
+	const alf = 0.01;
 
 	if (point_2.x !== point_1.x) {
 		// сдвигаемся чуть чуть ближе к точке 1
-		const x = point_1.x < point_2.x ? point.x - 0.01 : point.x + 0.01;
+		const x = point_1.x < point_2.x ? point.x - alf : point.x + alf;
 		const buff = (x - point_1.x) / (point_2.x - point_1.x);
 
 		return {
@@ -140,22 +117,24 @@ const getNearPoint = (line: LineType, point: ScreenPoint): ScreenPoint => {
 		};
 	} else {
 		//с учетом, что ось y повернута вниз
-		const y = point_1.y > point_2.y ? point.y + 0.01 : point.y - 0.01;
+		const y = point_1.y > point_2.y ? point.y + alf : point.y - alf;
 		const buff = (y - point_1.y) / (point_2.y - point_1.y);
 
 		return {
 			y,
 			x: buff * (point_2.x - point_1.x) + point_1.x,
 		};
-	};
+	}
 };
 
 export type AlgoritmResult = Array<Array<ScreenPoint>>;
 
 export const StartWeilerAthertonAlgoritm = (
 	polygonPoints: Array<PolygonPoint>,
-	screenPoints: Array<ScreenPoint>
-): AlgoritmResult => {
+	screenPoints: Array<ScreenPoint>,
+	isUnion: boolean = false,
+	isСonjunction: boolean = false
+): AlgoritmResult | false => {
 	const pointType = <const>{
 		entering: 'ENTERING',
 		leaving: 'LEAVING',
@@ -183,7 +162,7 @@ export const StartWeilerAthertonAlgoritm = (
 			let flag = true;
 
 			points.forEach((point) => {
-				if (!inPoly(arr[(i + 1) % 2], point)) {
+				if (!InsidePolygon(arr[(i + 1) % 2], point)) {
 					flag = false;
 				}
 			});
@@ -199,15 +178,9 @@ export const StartWeilerAthertonAlgoritm = (
 
 	const setKey = (point: ScreenPoint) => `${point.x}|${point.y}`;
 
-	const BuildLists = (
-		polygonPoints: Array<PolygonPoint>,
-		screenPoints: Array<PolygonPoint>,
-		isFirstTime: boolean = true
-	): ListArrayType => {
+	const BuildLists = (polygonPoints: Array<PolygonPoint>, screenPoints: Array<PolygonPoint>): ListArrayType => {
 		const clippedPolygon: ListArrayType = [];
 		const outPolyPoint = InsidePolygon.bind(null, screenPoints);
-
-		// console.log( [...polygonPoints, polygonPoints[0]] );
 
 		[...polygonPoints, polygonPoints[0]].reduce((pPointA, pPointB) => {
 			const polygonLine: LineType = {
@@ -216,7 +189,7 @@ export const StartWeilerAthertonAlgoritm = (
 			};
 
 			const buff: ListArrayType = [];
-			let flag: boolean = true; // если эта точка пограничная и уже добавлена дважды в buff как вход и выход, то избегаем ее добавления 
+			let flag = true; // если эта точка пограничная и уже добавлена дважды в buff как вход и выход, то избегаем ее добавления
 			const pPointAKey = setKey(pPointA);
 
 			[...screenPoints, screenPoints[0]].reduce((sPointA, sPointB) => {
@@ -226,41 +199,29 @@ export const StartWeilerAthertonAlgoritm = (
 				};
 
 				const point = isLinesIntersected(screenLine, polygonLine);
-				// console.log(screenLine, polygonLine, point )
 				if (point != false) {
 					const pointKey = setKey(point);
-					// console.log( point )
-					if (pointKey === pPointAKey) {
-						 flag = false;
-					};
 
-					// if (sPointB.x === point.x && sPointB.y === point.y) {
-					// 	buff.push({
-					// 		key: pointKey,
-					// 		data: {point, type: pointType.entering} 
-					// 	});
-					// } else if (sPointA.x === point.x && sPointA.y === point.y) {
-					// 	buff.push({
-					// 		key: pointKey,
-					// 		data: {point, type: pointType.leaving} 
-					// 	});
-					// } else 
-					{
-						// определяем это точка "вхождения" или "ухода" относительно screenPoints
-						// console.log( polygonLine, point, getNearPoint(polygonLine, point) )
-						if (!outPolyPoint(getNearPoint(polygonLine, point))) {
-							buff.push({
-								key: pointKey,
-								data: {point, type: pointType.entering} 
-							});
-						} else {
-							buff.push({
-								key: pointKey,
-								data: {point, type: pointType.leaving} 
-							});
-						};
+					if (pointKey === pPointAKey) {
+						flag = false;
 					}
-				};
+
+					const point_1 = getNearPoint(polygonLine, point); // точка ближе к началу вектора pPointA
+					const point_2 = getNearPoint({point_1: pPointB, point_2: pPointA}, point); // ближе к концу вектора вхождения
+
+					// определяем это точка "вхождения" или "ухода" относительно screenPoints
+					if (!outPolyPoint(point_1) && outPolyPoint(point_2)) {
+						buff.push({
+							key: pointKey,
+							data: isUnion ? {point, type: pointType.leaving} : {point, type: pointType.entering},
+						});
+					} else if (outPolyPoint(point_1) && !outPolyPoint(point_2)) {
+						buff.push({
+							key: pointKey,
+							data: isUnion ? {point, type: pointType.entering} : {point, type: pointType.leaving},
+						});
+					}
+				}
 
 				return sPointB;
 			});
@@ -300,71 +261,67 @@ export const StartWeilerAthertonAlgoritm = (
 	};
 
 	const clippedPolygon: ListArrayType = BuildLists(polygonPoints, screenPoints);
-	const clippingPoligon: ListArrayType = BuildLists(screenPoints, polygonPoints, false);
+	const clippingPoligon: ListArrayType = BuildLists(screenPoints, polygonPoints);
 
-	// возвращает кусок map от ["ENTERING", "LEAVING"] 
-	const getPolygon = (startKey: string, buff: ListArrayType): Array<ScreenPoint> => {
+	// возвращает кусок map от ["ENTERING", "LEAVING"]
+	const getPolygon = (startKey: string, buff: ListArrayType, isRevers: boolean = false): Array<ScreenPoint> => {
 		const arr: Array<ScreenPoint> = [];
 
 		let j = 0;
-
-		// console.log( startKey, buff );
-
 		for (
 			let i = buff.findIndex(({key, data}) => key === startKey && data.type === pointType.entering);
 			i !== -1 && j !== 10;
-			i = (i + 1) % buff.length, j++
+			j++
 		) {
-	
+			if (isRevers) {
+				i--;
+				if (i === -1) {
+					i += buff.length;
+				}
+			} else {
+				i = (i + 1) % buff.length;
+			}
+
 			const {type, point} = buff[i].data;
 
 			arr.push(point);
+
 			if (type === pointType.leaving) {
-				// console.log( arr )
 				return arr;
 			}
 		}
 
 		return arr;
 	};
-	// console.clear();
-
-	console.log(clippedPolygon); 
-	console.log(clippingPoligon);
 
 	clippedPolygon.forEach(({key, data}) => {
 		const {type} = data;
 
 		if (type === pointType.entering) {
-			const res: Array<ScreenPoint> = getPolygon(key, clippedPolygon);
+			// if (type === pointType.leaving) {
+			const res: Array<ScreenPoint> = getPolygon(key, clippedPolygon, isСonjunction);
 
-			// console.log( res );
-			// console.log('--------------------------')
 			let toggleFlag = 1;
 			while (setKey(res[res.length - 1]) !== key) {
 				const newKey = setKey(res[res.length - 1]);
-				// console.log('--------------------------')
+
 				if (toggleFlag % 2) {
 					res.push(...getPolygon(newKey, clippingPoligon));
 				} else {
-					res.push(...getPolygon(newKey, clippedPolygon));
+					res.push(...getPolygon(newKey, clippedPolygon, isСonjunction));
 				}
-				// console.log( res )
 
 				toggleFlag++;
-				if (toggleFlag === 10) {
+				if (toggleFlag === 15) {
 					console.log('!!!!!!!!!!!!!!!!!1');
-	
-					// явная ошибка
-					return res;
+
+					return false;
 				}
 			}
-
-			// res.pop();
 
 			result.push(res);
 		}
 	});
-	// console.log( result )
+
 	return result;
 };
